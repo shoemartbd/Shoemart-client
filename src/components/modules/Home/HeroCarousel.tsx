@@ -4,7 +4,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { getHeroSliders } from "@/services/heroSlider.services";
 
@@ -59,23 +58,6 @@ export default function HeroCarousel() {
   const goNext = () => {
     setAnimate(true);
     setPos((p) => (p >= slides.length ? 1 : p + 1));
-  };
-
-  const goPrev = () => {
-    if (pos === 0) {
-      // Jump to the copy at the end, then slide back one
-      setAnimate(false);
-      setPos(slides.length);
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          setAnimate(true);
-          setPos(slides.length - 1);
-        }),
-      );
-    } else {
-      setAnimate(true);
-      setPos((p) => p - 1);
-    }
   };
 
   const goTo = (i: number) => {
@@ -197,23 +179,6 @@ export default function HeroCarousel() {
 
       {slides.length > 1 && (
         <>
-          {/* Arrows */}
-          <button
-            onClick={goPrev}
-            aria-label="Previous slide"
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/70 backdrop-blur-sm ring-1 ring-black/5 shadow-md p-2 rounded-full text-foreground hover:bg-background hover:scale-105 transition-all"
-          >
-            <ChevronLeft />
-          </button>
-
-          <button
-            onClick={goNext}
-            aria-label="Next slide"
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/70 backdrop-blur-sm ring-1 ring-black/5 shadow-md p-2 rounded-full text-foreground hover:bg-background hover:scale-105 transition-all"
-          >
-            <ChevronRight />
-          </button>
-
           {/* Dots */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
             {slides.map((_, i) => (
