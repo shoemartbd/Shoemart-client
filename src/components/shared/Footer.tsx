@@ -32,7 +32,7 @@ const footerLinks = {
 
 export default function Footer({ siteSettings }: FooterProps) {
   const siteName = siteSettings?.siteName || "Shoe Mart";
-  const logo = siteSettings?.logo || "/logo.jpeg";
+  const logo = siteSettings?.logo || "/mainlogo.jpeg";
   const description =
     siteSettings?.description ||
     "Your ultimate online store. Discover premium, hand-picked products delivered across the nation.";

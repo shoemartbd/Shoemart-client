@@ -37,7 +37,8 @@ const nextConfig: NextConfig = {
 
   experimental: {
     serverActions: {
-      bodySizeLimit: "5mb",
+      // Hero slider videos go through a server action (capped at 30 MB in the form)
+      bodySizeLimit: "32mb",
     },
   },
 

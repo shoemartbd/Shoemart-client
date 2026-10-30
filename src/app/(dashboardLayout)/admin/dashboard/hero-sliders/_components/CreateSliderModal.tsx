@@ -18,6 +18,10 @@ import { createHeroSlider } from "@/services/heroSlider.services";
 
 export type SliderType = "SLIDE" | "BANNER";
 
+// Upload caps; the server action body limit in next.config.ts must stay above these
+const MAX_IMAGE_MB = 10;
+const MAX_VIDEO_MB = 30;
+
 const COPY: Record<SliderType, { button: string; title: string; hint: string }> = {
   SLIDE: {
     button: "Add Slide",
@@ -56,6 +60,15 @@ export default function CreateSliderModal({
     if (selectedFile) {
       if (type === "BANNER" && selectedFile.type.startsWith("video/")) {
         toast.error("Offer banners must be images");
+        e.target.value = "";
+        return;
+      }
+      const video = selectedFile.type.startsWith("video/");
+      const maxBytes = (video ? MAX_VIDEO_MB : MAX_IMAGE_MB) * 1024 * 1024;
+      if (selectedFile.size > maxBytes) {
+        toast.error(
+          `${video ? "Video" : "Image"} is too large (${(selectedFile.size / 1024 / 1024).toFixed(1)} MB). Max ${video ? MAX_VIDEO_MB : MAX_IMAGE_MB} MB — please compress it first.`,
+        );
         e.target.value = "";
         return;
       }

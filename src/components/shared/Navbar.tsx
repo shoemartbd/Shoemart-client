@@ -74,7 +74,7 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const siteName = siteSettings?.siteName || "Shoe Mart";
-  const logo = siteSettings?.logo || "/logo.jpeg";
+  const logo = siteSettings?.logo || "/mainlogo.jpeg";
   const phone = siteSettings?.phone;
   const email = siteSettings?.email;
 
@@ -117,7 +117,7 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
     router.refresh();
   };
 
-  // Brand logo from Site Settings (falls back to public/logo.jpeg). It sits on
+  // Brand logo from Site Settings (falls back to public/mainlogo.jpeg). It sits on
   // a white tile that only shows as a tile in dark mode.
   const logoMark = (size: "sm" | "lg") => (
     <Image
@@ -360,7 +360,7 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
             </Button>
             <TrackOrderPopover triggerClassName="size-10 text-foreground" />
             <ThemeToggle className="size-10" iconClassName="size-6" />
-            <MobileMenu userInfo={userInfo} siteName={siteName} />
+            <MobileMenu userInfo={userInfo} siteName={siteName} logo={logo} />
           </div>
         </div>
 

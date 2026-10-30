@@ -36,11 +36,13 @@ import { TrackOrderForm } from "./TrackOrderPopover";
 interface MobileMenuProps {
   userInfo?: UserInfo | null;
   siteName: string;
+  // Site Settings logo, or the bundled one
+  logo: string;
 }
 
 // ⋮ menu on small screens: categories with their subcategories, order
 // tracking and account actions
-export default function MobileMenu({ userInfo, siteName }: MobileMenuProps) {
+export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function MobileMenu({ userInfo, siteName }: MobileMenuProps) {
           <SheetTitle>
             <Link href="/" onClick={close} className="flex items-center gap-2">
               <Image
-                src="/logo.jpeg"
+                src={logo}
                 alt={siteName}
                 width={1293}
                 height={854}
