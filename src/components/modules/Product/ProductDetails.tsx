@@ -15,9 +15,8 @@ import {
   Truck,
   RefreshCw,
   Zap,
-  Info,
-  Phone,
   Ruler,
+  Share2,
 } from "lucide-react";
 import {
   Dialog,
@@ -27,8 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { FaWhatsapp } from "react-icons/fa";
-import { ISiteSetting } from "@/types/siteSetting.types";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/providers/CartProvider";
 import { useWishlist } from "@/providers/WishlistProvider";
@@ -42,10 +40,9 @@ const ZOOM = 2.5;
 
 interface ProductDetailsProps {
   product: IProduct;
-  siteSettings?: ISiteSetting | null;
 }
 
-export default function ProductDetails({ product, siteSettings }: ProductDetailsProps) {
+export default function ProductDetails({ product }: ProductDetailsProps) {
   const router = useRouter();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -139,12 +136,29 @@ export default function ProductDetails({ product, siteSettings }: ProductDetails
 
   const isAddToCartDisabled = displayStock === 0 || (product.type === "VARIABLE" && !currentVariant);
 
-  const phone = siteSettings?.phone?.replace(/[^\d+]/g, "");
-  const whatsapp = siteSettings?.whatsapp?.replace(/[^\d]/g, "");
-  const callHref = phone ? `tel:${phone}` : null;
-  const whatsappHref = whatsapp
-    ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hi, I want to know about "${product.name}"`)}`
-    : null;
+  // Phone share sheet where there is one, otherwise copy the link
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product.name, url });
+      } catch {
+        // Closing the share sheet isn't an error
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  };
+
+  const toggleWishlist = () => {
+    if (inWishlist) removeFromWishlist(product.id);
+    else addToWishlist(product);
+  };
 
   return (
     <div className="bg-background pt-8 pb-16">
@@ -224,9 +238,35 @@ export default function ProductDetails({ product, siteSettings }: ProductDetails
           {/* Product Info */}
           <div className="flex flex-col">
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mt-4 mb-2">
-              {product.name}
-            </h1>
+            <div className="mt-4 mb-2 flex items-start justify-between gap-4">
+              <h1 className="min-w-0 text-3xl sm:text-4xl font-extrabold text-foreground">
+                {product.name}
+              </h1>
+
+              <div className="flex shrink-0 items-center gap-1 pt-0.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  aria-label="Share"
+                  className="gap-1.5 px-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleWishlist}
+                  aria-label={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                  aria-pressed={inWishlist}
+                  className={`gap-1.5 px-2 hover:text-foreground ${inWishlist ? "text-primary" : "text-muted-foreground"}`}
+                >
+                  <Heart className="h-4 w-4" fill={inWishlist ? "currentColor" : "none"} />
+                  <span className="hidden sm:inline">Wishlist</span>
+                </Button>
+              </div>
+            </div>
 
             <div className="flex items-center gap-4 mb-6">
               <Badge
@@ -252,12 +292,6 @@ export default function ProductDetails({ product, siteSettings }: ProductDetails
               )}
             </div>
 
-            <p className="mb-6 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
-              <Info className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>
-                <span className="font-semibold">Note:</span> Prices are subject to change due to currency fluctuations. Feel free to call us for today's price.
-              </span>
-            </p>
 
             <div
               className="text-lg text-muted-foreground mb-8 leading-relaxed [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1 [&_li]:marker:text-primary [&>ol]:list-decimal [&>ol]:pl-5 [&>strong]:font-bold [&>a]:text-primary [&>a]:underline"
@@ -379,44 +413,7 @@ export default function ProductDetails({ product, siteSettings }: ProductDetails
                 <Zap className="mr-2 h-5 w-5" />
                 Order Now
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className={`rounded-full h-14 w-full sm:w-14 px-0 ${inWishlist ? "text-primary border-primary bg-primary/5" : ""}`}
-                onClick={() => {
-                  if (inWishlist) {
-                    removeFromWishlist(product.id);
-                  } else {
-                    addToWishlist(product);
-                  }
-                }}
-              >
-                <Heart className="h-5 w-5" fill={inWishlist ? "currentColor" : "none"} />
-                <span className="sr-only">{inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}</span>
-              </Button>
             </div>
-
-            {/* Call / WhatsApp, numbers from Dashboard → Site Settings */}
-            {(callHref || whatsappHref) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 -mt-6 mb-10">
-                {callHref && (
-                  <Button asChild size="lg" variant="outline" className="rounded-full text-lg h-14 border-primary text-primary hover:bg-primary/5 hover:text-primary">
-                    <a href={callHref}>
-                      <Phone className="mr-2 h-5 w-5" />
-                      Call Now
-                    </a>
-                  </Button>
-                )}
-                {whatsappHref && (
-                  <Button asChild size="lg" className="rounded-full text-lg h-14 bg-[#25D366] text-white hover:bg-[#1ebe5b]">
-                    <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                      <FaWhatsapp className="mr-2 h-5 w-5" />
-                      WhatsApp
-                    </a>
-                  </Button>
-                )}
-              </div>
-            )}
 
             <Separator className="mb-8" />
 

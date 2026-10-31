@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Grid2x2 } from "lucide-react";
+import ProductCardOptions from "@/components/modules/Home/ProductCardOptions";
 
 interface RecommendedProduct {
   id: string;
@@ -105,6 +106,7 @@ export default function CategoryRecommendations({
                       className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                     />
                   )}
+                  <ProductCardOptions product={product} />
                   {discount && (
                     <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
                       -{discount}%

@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ProductHighlight } from "@/lib/productHighlights";
 import SectionTitle from "@/components/shared/SectionTitle";
+import ProductCardOptions from "./ProductCardOptions";
 
 const PRODUCT_COUNT = 12;
 const SLIDE_EVERY_MS = 3000;
@@ -57,6 +58,7 @@ function SliderCard({ product }: { product: IProduct }) {
             <Package className="h-10 w-10 text-muted-foreground/40" />
           </div>
         )}
+        <ProductCardOptions product={product} />
       </Link>
 
       <div className="mt-3 flex flex-1 flex-col gap-2">

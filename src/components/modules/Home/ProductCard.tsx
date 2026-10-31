@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Package } from "lucide-react";
 import { productToGtmItem, pushEcommerceEvent } from "@/lib/gtm";
+import ProductCardOptions from "./ProductCardOptions";
 
 interface ProductCardProps {
   product: IProduct;
@@ -56,6 +57,8 @@ export default function ProductCard({ product }: ProductCardProps) {
               <Package className="h-12 w-12 text-muted-foreground" />
             </div>
           )}
+
+          <ProductCardOptions product={product} />
 
           {/* Badges */}
           <div className="absolute left-3 top-3 flex flex-col gap-2">

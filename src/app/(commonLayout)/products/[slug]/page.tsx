@@ -1,6 +1,5 @@
 import ProductDetails from "@/components/modules/Product/ProductDetails";
 import { getProductBySlug } from "@/services/product.services";
-import { getSiteSettings } from "@/services/siteSetting.services";
 import { stripHtml } from "@/lib/utils";
 import { Metadata } from "next";
 import { cache } from "react";
@@ -33,11 +32,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailsPage({ params }: Props) {
   const { slug } = await params;
-  // Started now so it loads alongside the product
-  const siteSettingsPromise = getSiteSettings()
-    .then((res) => res.data)
-    .catch(() => null);
-
   let product = null;
   let hasError = false;
 
@@ -77,7 +71,5 @@ export default async function ProductDetailsPage({ params }: Props) {
     );
   }
 
-  const siteSettings = await siteSettingsPromise;
-
-  return <ProductDetails product={product} siteSettings={siteSettings} />;
+  return <ProductDetails product={product} />;
 }

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 
-// Put the hero photo at public/wholesale-hero.jpg. Until it's there, the
-// first category image stands in.
-const HERO_IMAGE = "/wholesale-hero.jpg";
+// Hero photo in public/ (square). If it's missing, the first category image
+// stands in.
+const HERO_IMAGE = "/Wholesale.png";
 
 export default function WholesaleHeroImage({ fallback }: { fallback?: string | null }) {
   const [src, setSrc] = useState(HERO_IMAGE);
@@ -16,7 +16,7 @@ export default function WholesaleHeroImage({ fallback }: { fallback?: string | n
         aria-hidden
         className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-[#d7141f]/40 via-transparent to-white/10 blur-2xl"
       />
-      <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10 bg-[#141414] shadow-2xl">
+      <div className="relative aspect-square overflow-hidden rounded-3xl border border-white/10 bg-[#141414] shadow-2xl">
         <Image
           src={src}
           alt="Shoe Mart wholesale"

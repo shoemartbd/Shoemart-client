@@ -70,7 +70,7 @@ export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full" aria-label="Open menu">
+        <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-white/15 hover:text-white" aria-label="Open menu">
           <MoreVertical className="size-6" />
         </Button>
       </SheetTrigger>

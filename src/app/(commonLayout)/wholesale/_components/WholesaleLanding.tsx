@@ -78,7 +78,7 @@ const FAQS = [
     a: "Yes. You can combine styles, colours and sizes in one wholesale order. Mention your size run in the message.",
   },
   {
-    q: "How do I get the wholesale price list?",
+    q: "How do I get the wholesale list?",
     a: "Send the request form. We share a quotation based on the categories and quantity you are interested in.",
   },
   {
@@ -157,7 +157,7 @@ export default function WholesaleLanding({ phone }: { phone: string | null }) {
             </h1>
             <p className="mt-6 max-w-xl text-base text-neutral-300 sm:text-lg">
               Buying for a shop, an online store or a company? Get Shoe Mart
-              footwear in bulk at wholesale prices, with delivery across
+              footwear in bulk at wholesale, with delivery across
               Bangladesh.
             </p>
 
@@ -167,7 +167,7 @@ export default function WholesaleLanding({ phone }: { phone: string | null }) {
                 onClick={scrollToForm}
                 className="h-12 gap-2 rounded-full bg-[#d7141f] px-6 font-bold text-white hover:bg-[#b5121c]"
               >
-                Request Wholesale Price <ArrowRight className="size-4" />
+                Request Wholesale <ArrowRight className="size-4" />
               </Button>
               {phone && (
                 <a
@@ -315,7 +315,7 @@ export default function WholesaleLanding({ phone }: { phone: string | null }) {
             </p>
           </div>
 
-          <div id={WHOLESALE_FORM_ID} className="scroll-mt-28 lg:col-span-3">
+          <div id={WHOLESALE_FORM_ID} className="scroll-mt-32 lg:col-span-3 lg:scroll-mt-36">
             <div className="rounded-3xl border bg-card p-6 shadow-xl md:p-8">
               <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-red">
                 <Send className="size-3.5" /> Wholesale Request

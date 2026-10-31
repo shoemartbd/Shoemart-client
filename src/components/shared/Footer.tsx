@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowRight, FileDown } from "lucide-react";
 import {
   FaFacebook,
   FaInstagram,
@@ -10,6 +10,8 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { ISiteSetting } from "@/types/siteSetting.types";
+import { getSampleWorks } from "@/services/sampleWork.services";
+import { sampleWorkViewUrl } from "@/lib/sampleWork";
 
 interface FooterProps {
   siteSettings?: ISiteSetting | null;
@@ -30,7 +32,10 @@ const footerLinks = {
   ],
 };
 
-export default function Footer({ siteSettings }: FooterProps) {
+export default async function Footer({ siteSettings }: FooterProps) {
+  // Company profile PDF (first visible one in Dashboard → Sample Works)
+  const profilePdf = (await getSampleWorks())[0];
+
   const siteName = siteSettings?.siteName || "Shoe Mart";
   const logo = siteSettings?.logo || "/mainlogo.jpeg";
   const description =
@@ -122,6 +127,20 @@ export default function Footer({ siteSettings }: FooterProps) {
                     </Link>
                   </li>
                 ))}
+                {profilePdf && (
+                  <li>
+                    <a
+                      href={sampleWorkViewUrl(profilePdf)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={profilePdf.title}
+                      className="text-slate-400 text-sm font-bold hover:text-[#ef3340] transition-colors inline-flex items-center gap-2"
+                    >
+                      <FileDown size={14} className="shrink-0" />
+                      Company Profile
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
             <div>
