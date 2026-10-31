@@ -12,13 +12,13 @@ import {
   CheckCircle2,
   Factory,
   PackageCheck,
-  Phone,
   Send,
   ShoppingBag,
   Store,
   Truck,
   Users,
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -26,7 +26,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { getAllCategories } from "@/services/category.services";
+import { getStorefrontCategories } from "@/services/category.services";
 import WholesaleForm from "./WholesaleForm";
 import WholesaleHeroImage from "./WholesaleHeroImage";
 import { scrollToWholesaleForm as scrollToForm, WHOLESALE_FORM_ID } from "./wholesaleOptions";
@@ -121,10 +121,19 @@ function SectionHeading({
   );
 }
 
-export default function WholesaleLanding({ phone }: { phone: string | null }) {
+// wa.me wants the full international number; local 01XXXXXXXXX → 8801XXXXXXXXX
+const toWhatsappLink = (number: string) => {
+  const digits = number.replace(/\D/g, "");
+  const intl = digits.startsWith("0") ? `88${digits}` : digits;
+  const text = "Hi, I'd like to know about wholesale orders.";
+  return `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+};
+
+export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null }) {
+  const whatsappHref = whatsapp ? toWhatsappLink(whatsapp) : null;
   const { data } = useQuery({
-    queryKey: ["categories", "home-top-level"],
-    queryFn: () => getAllCategories({ limit: "200" }),
+    queryKey: ["categories", "storefront"],
+    queryFn: () => getStorefrontCategories(),
     staleTime: 10 * 60 * 1000,
   });
   const categories: { name: string; image?: string | null }[] = (data?.data || [])
@@ -169,12 +178,14 @@ export default function WholesaleLanding({ phone }: { phone: string | null }) {
               >
                 Request Wholesale <ArrowRight className="size-4" />
               </Button>
-              {phone && (
+              {whatsappHref && (
                 <a
-                  href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-                  className="inline-flex h-12 items-center gap-2 rounded-full border border-white/20 px-6 font-bold transition-colors hover:bg-white hover:text-black"
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-12 items-center gap-2 rounded-full border border-white/20 px-6 font-bold transition-colors hover:border-[#25D366] hover:bg-[#25D366] hover:text-white"
                 >
-                  <Phone className="size-4" /> {phone}
+                  <FaWhatsapp className="size-5" /> {whatsapp}
                 </a>
               )}
             </div>

@@ -57,3 +57,7 @@ export const getCategoryById = async (id: string) => {
     throw error;
   }
 };
+
+// Shop menus and banners: every category, in the order they were added
+export const getStorefrontCategories = async () =>
+  getAllCategories({ limit: "200", sortBy: "createdAt", sortOrder: "asc" });

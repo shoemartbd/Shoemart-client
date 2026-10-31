@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 
 export default async function WholesalePage() {
   const siteSettings = (await getSiteSettings()).data;
-  return <WholesaleLanding phone={siteSettings?.phone ?? null} />;
+  return <WholesaleLanding whatsapp={siteSettings?.whatsapp || null} />;
 }

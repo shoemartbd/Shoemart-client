@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
-import { getAllCategories } from "@/services/category.services";
+import { getStorefrontCategories } from "@/services/category.services";
 import { ICategory } from "@/types/category.types";
 
 const categoryHref = (id: string) => `/products?categoryId=${id}`;
@@ -13,8 +13,8 @@ const categoryHref = (id: string) => `/products?categoryId=${id}`;
 export default function CategoryBar() {
   const { data } = useQuery({
     // Same request as the homepage category banners, so it's shared
-    queryKey: ["categories", "home-top-level"],
-    queryFn: () => getAllCategories({ limit: "200" }),
+    queryKey: ["categories", "storefront"],
+    queryFn: () => getStorefrontCategories(),
     staleTime: 10 * 60 * 1000,
   });
 

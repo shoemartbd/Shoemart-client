@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { getAllCategories } from "@/services/category.services";
+import { getStorefrontCategories } from "@/services/category.services";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Fixed 4 banners: one row of 4 on desktop, 2 × 2 on phones
@@ -16,9 +16,9 @@ const GRID = "grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4";
 // so the name only shows when no image was uploaded.
 export default function CategorySection() {
   const { data, isLoading } = useQuery({
-    // Own key: this asks for every top-level category, not the default 10
-    queryKey: ["categories", "home-top-level"],
-    queryFn: () => getAllCategories({ limit: "200" }),
+    // Every category, oldest first (shared with the navbar category bar)
+    queryKey: ["categories", "storefront"],
+    queryFn: () => getStorefrontCategories(),
     staleTime: 10 * 60 * 1000, // cache for 10 minutes
   });
 

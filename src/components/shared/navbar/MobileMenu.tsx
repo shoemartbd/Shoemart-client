@@ -25,7 +25,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { getAllCategories } from "@/services/category.services";
+import { getStorefrontCategories } from "@/services/category.services";
 import { logoutUser } from "@/services/auth.services";
 import { getDefaultDashboardRoute, getProfileRoute } from "@/lib/authUtils";
 import { ICategory } from "@/types/category.types";
@@ -49,8 +49,8 @@ export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps
   const [showTrack, setShowTrack] = useState(false);
 
   const { data } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => getAllCategories(),
+    queryKey: ["categories", "storefront"],
+    queryFn: () => getStorefrontCategories(),
     staleTime: 10 * 60 * 1000,
     enabled: open,
   });

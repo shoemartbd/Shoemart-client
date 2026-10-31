@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { productToGtmItem, pushEcommerceEvent, pushGtmEvent } from "@/lib/gtm";
 import { getAllProducts } from "@/services/product.services";
-import { getAllCategories } from "@/services/category.services";
+import { getStorefrontCategories } from "@/services/category.services";
 import SubcategoryStrip from "./SubcategoryStrip";
 import Pagination from "@/components/shared/Pagination";
 import ProductCard from "@/components/modules/Home/ProductCard";
@@ -161,8 +161,8 @@ function ProductListingContent() {
 
   // Fetch categories
   const { data: categoryResponse } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => getAllCategories(),
+    queryKey: ["categories", "storefront"],
+    queryFn: () => getStorefrontCategories(),
   });
 
   const PAGE_SIZE = 20;
