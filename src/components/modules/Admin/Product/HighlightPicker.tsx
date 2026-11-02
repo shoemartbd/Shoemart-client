@@ -41,7 +41,7 @@ export default function HighlightPicker({ value, onChange }: HighlightPickerProp
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Pick one or more. Products are grouped by these on the homepage.
+        Pick one or more. Products are grouped by these on the homepage; "Wholesale" adds the photo to the wholesale page gallery.
       </p>
     </div>
   );

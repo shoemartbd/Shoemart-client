@@ -57,6 +57,10 @@ const EditCategoryFormModal = ({
     category?.image || null,
   );
 
+  const hasSubcategories = categories.some(
+    (c) => category && c.parentId === category.id,
+  );
+
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -163,8 +167,11 @@ const EditCategoryFormModal = ({
                           <SelectItem value="none">
                             None (Root Category)
                           </SelectItem>
-                          {categories
-                            .filter((c) => c.id !== category?.id)
+                          {/* Only root categories can be parents (max 2 levels);
+                              a category that has its own subcategories must stay root */}
+                          {!hasSubcategories &&
+                            categories
+                            .filter((c) => !c.parentId && c.id !== category?.id)
                             .map((c) => (
                               <SelectItem key={c.id} value={c.id}>
                                 {c.name}
@@ -172,6 +179,11 @@ const EditCategoryFormModal = ({
                             ))}
                         </SelectContent>
                       </Select>
+                      {hasSubcategories && (
+                        <p className="text-xs text-muted-foreground">
+                          This category has subcategories, so it must stay a root category.
+                        </p>
+                      )}
                     </div>
                   )}
                 </form.Field>

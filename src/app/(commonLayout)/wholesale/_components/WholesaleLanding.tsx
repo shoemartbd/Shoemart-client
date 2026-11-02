@@ -29,6 +29,7 @@ import {
 import { getStorefrontCategories } from "@/services/category.services";
 import WholesaleForm from "./WholesaleForm";
 import WholesaleHeroImage from "./WholesaleHeroImage";
+import WholesaleProductView from "./WholesaleProductView";
 import { scrollToWholesaleForm as scrollToForm, WHOLESALE_FORM_ID } from "./wholesaleOptions";
 
 const REASONS = [
@@ -188,6 +189,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
                   <FaWhatsapp className="size-5" /> {whatsapp}
                 </a>
               )}
+              <WholesaleProductView />
             </div>
 
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-300">

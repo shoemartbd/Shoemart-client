@@ -4,7 +4,7 @@ import DataTable from "@/components/shared/table/DataTable";
 import { useRowActionModalState } from "@/hooks/useRowActionModalState";
 import { useServerManagedDataTable } from "@/hooks/useServerManagedDataTable";
 import { useServerManagedDataTableSearch } from "@/hooks/useServerManagedDatatableSearch";
-import { getAllCategories } from "@/services/category.services";
+import { getAllCategories, getCategoryOptions } from "@/services/category.services";
 import { PaginationMeta } from "@/types/api.types";
 import { ICategory } from "@/types/category.types";
 import { useQuery } from "@tanstack/react-query";
@@ -72,6 +72,13 @@ const CategoryTable = ({
   });
 
   const categoryList = categoryResponse?.data ?? [];
+
+  // Parent picker needs every category, not just the current table page
+  const { data: optionsResponse } = useQuery({
+    queryKey: ["categories", "options"],
+    queryFn: () => getCategoryOptions(),
+  });
+  const allCategories = optionsResponse?.data ?? [];
   const meta: PaginationMeta | undefined = categoryResponse?.meta;
 
   return (
@@ -95,7 +102,7 @@ const CategoryTable = ({
           debounceMs: 700,
           onDebouncedChange: handleDebouncedSearchChange,
         }}
-        toolbarAction={<CreateCategoryFormModal categories={categoryList} />}
+        toolbarAction={<CreateCategoryFormModal categories={allCategories} />}
         meta={meta}
         actions={tableActions}
       />
@@ -104,7 +111,7 @@ const CategoryTable = ({
         open={isEditModalOpen}
         onOpenChange={onEditOpenChange}
         category={editingItem}
-        categories={categoryList}
+        categories={allCategories}
       />
 
       <DeleteCategoryConfirmationDialog

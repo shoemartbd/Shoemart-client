@@ -17,6 +17,13 @@ export const PRODUCT_HIGHLIGHTS = [
     label: "Top Selling",
     className: "bg-orange-500 text-white border-orange-500",
   },
+  {
+    // Not a homepage section: shows the product in the wholesale page's
+    // "Product View" gallery (photo + code only)
+    value: "WHOLESALE",
+    label: "Wholesale",
+    className: "bg-violet-600 text-white border-violet-600",
+  },
 ] as const;
 
 export type ProductHighlight = (typeof PRODUCT_HIGHLIGHTS)[number]["value"];

@@ -11,7 +11,9 @@ import {
   LayoutGrid,
   LogIn,
   LogOut,
+  MapPin,
   MoreVertical,
+  Phone,
   PackageSearch,
   User,
   UserPlus,
@@ -38,11 +40,13 @@ interface MobileMenuProps {
   siteName: string;
   // Site Settings logo, or the bundled one
   logo: string;
+  // Site Settings hotline
+  phone?: string | null;
 }
 
 // ⋮ menu on small screens: categories with their subcategories, order
 // tracking and account actions
-export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps) {
+export default function MobileMenu({ userInfo, siteName, logo, phone }: MobileMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -152,8 +156,8 @@ export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps
             </ul>
           </div>
 
-          {/* Track order */}
-          <div className="border-t p-5">
+          {/* Track order, stores and hotline (the desktop top bar's links) */}
+          <div className="space-y-2 border-t p-5">
             <button
               type="button"
               onClick={() => setShowTrack((v) => !v)}
@@ -170,6 +174,23 @@ export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps
               <div className="mt-3 rounded-xl border p-4">
                 <TrackOrderForm onSubmitted={close} />
               </div>
+            )}
+            <Link
+              href="/our-stores"
+              onClick={close}
+              className="flex w-full items-center gap-3 rounded-xl border px-4 h-12 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors"
+            >
+              <MapPin className="size-5 text-primary" />
+              Find Our Store
+            </Link>
+            {phone && (
+              <a
+                href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+                className="flex w-full items-center gap-3 rounded-xl border px-4 h-12 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                <Phone className="size-5 text-primary" />
+                Hotline: {phone}
+              </a>
             )}
           </div>
         </div>

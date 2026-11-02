@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { createProduct, generateProductSku } from "@/services/product.services";
-import { getAllCategories } from "@/services/category.services";
+import { getCategoryOptions } from "@/services/category.services";
 import BrandSelect from "./BrandSelect";
 import SizeChartSelect from "./SizeChartSelect";
 import HighlightPicker from "./HighlightPicker";
@@ -91,8 +91,8 @@ export default function AddProductForm() {
   const [generatedVariants, setGeneratedVariants] = useState<any[]>([]);
 
   const { data: categoryResponse } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => getAllCategories(),
+    queryKey: ["categories", "options"],
+    queryFn: () => getCategoryOptions(),
   });
   const allCategories = categoryResponse?.data || [];
   const parentCategories = allCategories.filter((c: any) => !c.parentId);

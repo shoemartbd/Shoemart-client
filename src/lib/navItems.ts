@@ -207,6 +207,11 @@ export const adminNavItems: NavSection[] = [
         icon: "FileDown",
       },
       {
+        title: "Stores",
+        href: "/admin/dashboard/stores",
+        icon: "Store",
+      },
+      {
         title: "Pages & FAQ",
         href: "/admin/dashboard/pages",
         icon: "FileText",

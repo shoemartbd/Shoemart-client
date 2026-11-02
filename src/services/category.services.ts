@@ -61,3 +61,7 @@ export const getCategoryById = async (id: string) => {
 // Shop menus and banners: every category, in the order they were added
 export const getStorefrontCategories = async () =>
   getAllCategories({ limit: "200", sortBy: "createdAt", sortOrder: "asc" });
+
+// Admin dropdowns (product form, parent picker): every category, unpaginated
+export const getCategoryOptions = async () =>
+  getAllCategories({ limit: "1000", sortBy: "name", sortOrder: "asc" });

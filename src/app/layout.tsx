@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import QueryProviders from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -9,20 +9,16 @@ import { Toaster } from "@/components/ui/sonner";
 import FloatingChatbot from "@/components/modules/Chatbot/FloatingChatbot";
 import SmoothScroll from "@/components/shared/SmoothScroll";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Same typeface as vibrantbd.com, used for body text and headings
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair-display",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
 });
 
 // Browser UI (mobile address bar) in the brand colours
@@ -50,7 +46,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
+        className={`${poppins.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"

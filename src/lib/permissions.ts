@@ -56,6 +56,7 @@ const PAGE_RULES: [string, PageRule][] = [
   ["/admin/dashboard/popups", "homepage.manage"],
   ["/admin/dashboard/home-categories", "homepage.manage"],
   ["/admin/dashboard/sample-works", "homepage.manage"],
+  ["/admin/dashboard/stores", "homepage.manage"],
   ["/admin/dashboard/pages/", "page.manage"],
   ["/admin/dashboard/pages", ["page.manage", "homepage.manage"]],
   ["/admin/dashboard/blogs", "blog.manage"],

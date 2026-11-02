@@ -38,6 +38,7 @@ import TrackOrderPopover from "./navbar/TrackOrderPopover";
 import WishlistSheet from "./navbar/WishlistSheet";
 import MobileMenu from "./navbar/MobileMenu";
 import CategoryBar from "./navbar/CategoryBar";
+import TopAnnouncementBar from "./navbar/TopAnnouncementBar";
 
 interface NavbarProps {
   className?: string;
@@ -107,6 +108,8 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
   );
 
   return (
+    <>
+    <TopAnnouncementBar phone={siteSettings?.phone} />
     <section
       className={cn(
         "sticky top-0 z-50 w-full shadow-sm transition-all duration-300",
@@ -274,7 +277,7 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
               </Button>
               <TrackOrderPopover triggerClassName="size-10 text-white hover:bg-white/15 hover:text-white" />
               <ThemeToggle className="size-10 hover:bg-white/15" iconClassName="size-6" />
-              <MobileMenu userInfo={userInfo} siteName={siteName} logo={logo} />
+              <MobileMenu userInfo={userInfo} siteName={siteName} logo={logo} phone={siteSettings?.phone} />
             </div>
           </div>
 
@@ -291,6 +294,7 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
 
       <CategoryBar />
     </section>
+    </>
   );
 };
 

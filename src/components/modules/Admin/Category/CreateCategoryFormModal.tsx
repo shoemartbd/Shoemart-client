@@ -164,7 +164,8 @@ const CreateCategoryFormModal = ({ categories }: { categories: ICategory[] }) =>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None (Root Category)</SelectItem>
-                          {categories.map((c) => (
+                          {/* Only root categories can be parents (max 2 levels) */}
+                          {categories.filter((c) => !c.parentId).map((c) => (
                             <SelectItem key={c.id} value={c.id}>
                               {c.name}
                             </SelectItem>

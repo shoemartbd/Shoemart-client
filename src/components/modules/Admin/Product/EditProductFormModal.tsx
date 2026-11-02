@@ -27,7 +27,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { getAllCategories } from "@/services/category.services";
+import { getCategoryOptions } from "@/services/category.services";
 import BrandSelect from "./BrandSelect";
 import SizeChartSelect from "./SizeChartSelect";
 import HighlightPicker from "./HighlightPicker";
@@ -101,8 +101,8 @@ export default function EditProductFormModal({
   const router = useRouter();
 
   const { data: categoryResponse } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => getAllCategories(),
+    queryKey: ["categories", "options"],
+    queryFn: () => getCategoryOptions(),
   });
   const allCategories = categoryResponse?.data || [];
   const parentCategories = allCategories.filter((c: any) => !c.parentId);
