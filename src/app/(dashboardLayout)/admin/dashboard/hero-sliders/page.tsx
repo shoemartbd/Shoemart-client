@@ -129,7 +129,7 @@ export default function HeroSlidersPage() {
                   Images or videos. Rotate automatically across the full width.
                 </p>
                 <p className="text-sm font-medium text-primary">
-                  Size: 1800 × 600 px · Ratio 3:1
+                  Size: 1920 × 600 px · keep text in the middle
                 </p>
               </div>
               <CreateSliderModal type="SLIDE" onSuccess={fetchSliders} />

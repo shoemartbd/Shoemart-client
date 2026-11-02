@@ -26,7 +26,7 @@ const COPY: Record<SliderType, { button: string; title: string; hint: string }> 
   SLIDE: {
     button: "Add Slide",
     title: "Upload New Slide",
-    hint: "Image or video. Rotates in the main slider. Use 1800 × 600 px (ratio 3:1). Keep text and faces away from the edges. Videos play muted and move on when they end; keep them short (under 30s) and small (MP4).",
+    hint: "Image or video. Rotates in the main slider. Use 1920 × 600 px. The banner runs edge to edge, so on wide screens a little of the top and bottom is trimmed: keep text and faces in the middle. Videos play muted and move on when they end; keep them short (under 30s) and small (MP4).",
   },
   BANNER: {
     button: "Add Banner",

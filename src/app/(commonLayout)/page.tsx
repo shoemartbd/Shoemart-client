@@ -16,8 +16,9 @@ import FlashSale from "@/components/modules/Home/FlashSale";
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
+      {/* Edge to edge, outside the centred content column */}
+      <HeroCarousel />
       <main className="w-full max-w-[1440px] mx-auto p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 lg:space-y-10">
-        <HeroCarousel />
         <CategorySection />
         <PromoStrip />
         <HighlightProductSlider highlight="NEW_ARRIVAL" title="New Arrivals" />

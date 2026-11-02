@@ -25,6 +25,12 @@ function MaybeLink({
   );
 }
 
+// Full-width banner. The height stays what it was when the banner sat inside
+// the padded 1440px column (3:1 of that width, so at most 459px); on wide
+// screens the image fills the extra width and trims a little top and bottom.
+const HERO_SIZE =
+  "w-full aspect-2/1 md:aspect-auto md:h-[calc((100vw-3rem)/3)] lg:h-[min(calc((100vw-4rem)/3),459px)]";
+
 export default function HeroCarousel() {
   const [slides, setSlides] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -101,7 +107,7 @@ export default function HeroCarousel() {
   }, [slides, current]);
 
   if (!isLoaded) {
-    return <div className="aspect-2/1 rounded-2xl bg-muted animate-pulse md:aspect-3/1" />;
+    return <div className={`${HERO_SIZE} bg-muted animate-pulse`} />;
   }
 
   if (slides.length === 0) return null;
@@ -109,7 +115,7 @@ export default function HeroCarousel() {
   return (
     <section
       aria-label="Featured offers"
-      className="relative aspect-2/1 w-full overflow-hidden rounded-2xl md:aspect-3/1"
+      className={`relative overflow-hidden ${HERO_SIZE}`}
     >
       <div
         className={`flex h-full ${animate ? "transition-transform duration-700" : ""}`}
