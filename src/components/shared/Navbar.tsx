@@ -277,7 +277,7 @@ const Navbar = ({ userInfo, className, siteSettings }: NavbarProps) => {
               </Button>
               <TrackOrderPopover triggerClassName="size-10 text-white hover:bg-white/15 hover:text-white" />
               <ThemeToggle className="size-10 hover:bg-white/15" iconClassName="size-6" />
-              <MobileMenu userInfo={userInfo} siteName={siteName} logo={logo} phone={siteSettings?.phone} />
+              <MobileMenu userInfo={userInfo} siteName={siteName} logo={logo} />
             </div>
           </div>
 

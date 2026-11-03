@@ -5,8 +5,8 @@ interface TopAnnouncementBarProps {
   phone?: string | null;
 }
 
-// Thin black strip above the header (desktop only). It sits outside the
-// sticky header, so it scrolls away; on mobile the same links live in the ⋮ menu.
+// Thin black strip above the header, on every screen size. It sits outside
+// the sticky header, so it scrolls away.
 export default function TopAnnouncementBar({ phone }: TopAnnouncementBarProps) {
   const items = [
     ...(phone ? [{ icon: Phone, text: `Hotline: ${phone}` }] : []),
@@ -19,7 +19,7 @@ export default function TopAnnouncementBar({ phone }: TopAnnouncementBarProps) {
     <Link
       href="/our-stores"
       aria-label="Find our stores"
-      className="group hidden h-8 overflow-hidden bg-black text-white lg:block"
+      className="group block h-8 overflow-hidden bg-black text-white"
     >
       <div
         className="flex h-full w-max animate-[brand-marquee_linear_infinite] items-center group-hover:[animation-play-state:paused] motion-reduce:animate-none"

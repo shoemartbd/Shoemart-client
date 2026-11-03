@@ -11,9 +11,7 @@ import {
   LayoutGrid,
   LogIn,
   LogOut,
-  MapPin,
-  MoreVertical,
-  Phone,
+  Menu,
   PackageSearch,
   User,
   UserPlus,
@@ -40,13 +38,11 @@ interface MobileMenuProps {
   siteName: string;
   // Site Settings logo, or the bundled one
   logo: string;
-  // Site Settings hotline
-  phone?: string | null;
 }
 
-// ⋮ menu on small screens: categories with their subcategories, order
+// ☰ menu on small screens: categories with their subcategories, order
 // tracking and account actions
-export default function MobileMenu({ userInfo, siteName, logo, phone }: MobileMenuProps) {
+export default function MobileMenu({ userInfo, siteName, logo }: MobileMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -74,8 +70,8 @@ export default function MobileMenu({ userInfo, siteName, logo, phone }: MobileMe
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-white/15 hover:text-white" aria-label="Open menu">
-          <MoreVertical className="size-6" />
+        <Button variant="ghost" size="icon" className="size-10 rounded-md text-white hover:bg-white/15 hover:text-white" aria-label="Open menu">
+          <Menu className="size-7" strokeWidth={2.25} />
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[85vw] max-w-[380px] gap-0 p-0">
@@ -156,8 +152,8 @@ export default function MobileMenu({ userInfo, siteName, logo, phone }: MobileMe
             </ul>
           </div>
 
-          {/* Track order, stores and hotline (the desktop top bar's links) */}
-          <div className="space-y-2 border-t p-5">
+          {/* Track order */}
+          <div className="border-t p-5">
             <button
               type="button"
               onClick={() => setShowTrack((v) => !v)}
@@ -174,23 +170,6 @@ export default function MobileMenu({ userInfo, siteName, logo, phone }: MobileMe
               <div className="mt-3 rounded-xl border p-4">
                 <TrackOrderForm onSubmitted={close} />
               </div>
-            )}
-            <Link
-              href="/our-stores"
-              onClick={close}
-              className="flex w-full items-center gap-3 rounded-xl border px-4 h-12 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors"
-            >
-              <MapPin className="size-5 text-primary" />
-              Find Our Store
-            </Link>
-            {phone && (
-              <a
-                href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-                className="flex w-full items-center gap-3 rounded-xl border px-4 h-12 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors"
-              >
-                <Phone className="size-5 text-primary" />
-                Hotline: {phone}
-              </a>
             )}
           </div>
         </div>

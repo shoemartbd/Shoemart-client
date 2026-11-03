@@ -24,7 +24,8 @@ export default function CategoryBar() {
   if (categories.length === 0) return null;
 
   return (
-    <nav aria-label="Categories" className="border-b bg-background">
+    // Desktop only: on phones the categories live in the ☰ menu
+    <nav aria-label="Categories" className="hidden border-b bg-background lg:block">
       <ul className="container mx-auto flex h-12 items-stretch gap-1 overflow-x-auto px-4 [scrollbar-width:none] md:px-8 lg:justify-center lg:gap-8 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
         {categories.map((category) => {
           const subs = (category.subcategories ?? []).filter((s) => s.isActive !== false);
