@@ -1,6 +1,7 @@
 import HeroCarousel from "@/components/modules/Home/HeroCarousel";
 import PromoStrip from "@/components/modules/Home/PromoStrip";
 import ProductsBanner from "@/components/modules/Home/ProductsBanner";
+import HomeShowcase from "@/components/modules/Home/HomeShowcase";
 import HighlightProductSlider from "@/components/modules/Home/HighlightProductSlider";
 import HomeProducts from "@/components/modules/Home/HomeProducts";
 import CategorySection from "@/components/modules/Home/CategorySection";
@@ -25,8 +26,9 @@ export default function HomePage() {
         <FlashSale />
         <HighlightProductSlider highlight="TOP_SELLING" title="Top Selling Products" />
         <HighlightProductSlider highlight="TRENDING" title="Trending Products" />
-        <ProductsBanner />
+        <HomeShowcase />
         <HomeProducts />
+        <ProductsBanner />
         <HomeCategorySections />
         <Features />
         {/* <MarketplaceStats /> */}

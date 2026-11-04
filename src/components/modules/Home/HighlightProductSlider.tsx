@@ -1,87 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronLeft, ChevronRight, Package } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { getAllProducts } from "@/services/product.services";
 import { IProduct } from "@/components/modules/Admin/Product/productColumns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ProductHighlight } from "@/lib/productHighlights";
 import SectionTitle from "@/components/shared/SectionTitle";
-import ProductCardOptions from "./ProductCardOptions";
+import ProductCard from "./ProductCard";
 
 const PRODUCT_COUNT = 12;
 const SLIDE_EVERY_MS = 3000;
 
-const formatPrice = (value: number) =>
-  `৳${Math.round(value).toLocaleString("en-US")}`;
 
 // Cards visible at once; must match the basis-* classes on each slide below
 const getPerView = (width: number) =>
-  width >= 1280 ? 5 : width >= 1024 ? 4 : width >= 768 ? 3 : 2;
-
-function SliderCard({ product }: { product: IProduct }) {
-  const href = `/products/${product.slug}`;
-  const hasDiscount = product.regularPrice > product.sellPrice;
-
-  return (
-    <div className="group flex h-full flex-col border bg-card p-3 transition-shadow hover:shadow-lg">
-      <Link
-        href={href}
-        className="relative aspect-square w-full overflow-hidden bg-white"
-      >
-        {product.images?.[0] ? (
-          <>
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              sizes="(min-width: 1280px) 18vw, (min-width: 1024px) 23vw, (min-width: 768px) 30vw, 48vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            {/* Second image fades in on hover */}
-            {product.images[1] && (
-              <Image
-                src={product.images[1]}
-                alt=""
-                fill
-                sizes="(min-width: 1280px) 18vw, (min-width: 1024px) 23vw, (min-width: 768px) 30vw, 48vw"
-                className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              />
-            )}
-          </>
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Package className="h-10 w-10 text-muted-foreground/40" />
-          </div>
-        )}
-        <ProductCardOptions product={product} />
-      </Link>
-
-      <div className="mt-3 flex flex-1 flex-col gap-2">
-        <Link href={href}>
-          <h3 className="line-clamp-2 text-sm font-bold text-foreground transition-colors hover:text-primary">
-            {product.name}
-          </h3>
-        </Link>
-
-        <div className="mt-auto flex flex-wrap items-baseline gap-x-2">
-          <span className="text-base font-bold text-foreground">
-            {formatPrice(product.sellPrice)}
-          </span>
-          {hasDiscount && (
-            <span className="text-sm text-muted-foreground line-through">
-              {formatPrice(product.regularPrice)}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+  width >= 1024 ? 4 : width >= 768 ? 3 : 2;
 
 interface HighlightProductSliderProps {
   highlight: ProductHighlight;
@@ -125,7 +62,7 @@ export function ProductSlider({
   products,
   isLoading = false,
 }: ProductSliderProps) {
-  const [perView, setPerView] = useState(5);
+  const [perView, setPerView] = useState(4);
   const [index, setIndex] = useState(0);
   const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -186,18 +123,18 @@ export function ProductSlider({
 
   return (
     <section aria-label={title}>
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-3 md:mb-6 md:gap-4">
         <SectionTitle title={title} />
         <Link
           href={moreHref}
-          className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-primary"
+          className="flex shrink-0 items-center gap-1 text-xs font-semibold text-foreground transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
         >
-          More Products <ArrowRight className="h-4 w-4" />
+          More Products <ArrowRight className="size-3.5 sm:size-4" />
         </Link>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
@@ -232,10 +169,10 @@ export function ProductSlider({
               {slides.map((product, i) => (
                 <div
                   key={`${product.id}-${i}`}
-                  className="shrink-0 basis-1/2 px-2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
+                  className="shrink-0 basis-1/2 px-2 md:basis-1/3 lg:basis-1/4"
                   aria-hidden={i >= products.length}
                 >
-                  <SliderCard product={product} />
+                  <ProductCard product={product} />
                 </div>
               ))}
             </div>

@@ -1,19 +1,35 @@
 "use server";
 
 import { httpClient } from "@/lib/axios/httpClient";
+import { IPeriodSummary } from "@/types/profitLoss.types";
 
-export type WholesaleRequestStatus = "NEW" | "CONTACTED" | "CLOSED";
+export type WholesaleRequestStatus = "NEW" | "CONTACTED" | "COMPLETED" | "CLOSED";
 
-// A product picked in the wholesale "Product View" gallery (saved snapshot)
+// One order line (saved snapshot of the product)
 export interface IWholesaleRequestProduct {
   productId: string;
   code: string;
   name: string;
   image: string | null;
+  color: string | null; // colour of a variable product
+  colorOptions?: string[]; // the product's colours (admin colour picker)
+  quantity: number; // pairs
+  unitPrice: number; // wholesale price per pair
+  costPrice: number; // purchase price per pair (internal)
+}
+
+export interface IWholesaleTotals {
+  pairs: number;
+  subtotal: number;
+  cost: number;
+  total: number;
+  profit: number;
+  due: number;
 }
 
 export interface IWholesaleRequest {
   id: string;
+  invoiceNo: number;
   name: string;
   phone: string;
   email: string | null;
@@ -21,10 +37,14 @@ export interface IWholesaleRequest {
   businessType: string | null;
   location: string | null;
   categories: string[];
-  quantity: string | null;
+  quantity: string | null; // legacy overall size from the old form
   products: IWholesaleRequestProduct[];
+  deliveryCharge: number;
+  paidAmount: number;
+  totals: IWholesaleTotals;
   message: string | null;
   status: WholesaleRequestStatus;
+  completedAt: string | null;
   adminNote: string | null;
   createdAt: string;
   updatedAt: string;
@@ -38,9 +58,64 @@ export interface ICreateWholesaleRequest {
   businessType?: string;
   location?: string;
   categories?: string[];
-  quantity?: string;
-  productIds?: string[];
+  items?: { productId: string; quantity: number; color?: string }[];
   message?: string;
+}
+
+export interface IUpdateWholesaleRequest {
+  status?: WholesaleRequestStatus;
+  adminNote?: string;
+  items?: {
+    productId: string;
+    color?: string;
+    quantity: number;
+    unitPrice: number;
+    costPrice?: number;
+  }[];
+  deliveryCharge?: number;
+  paidAmount?: number;
+}
+
+// "Add product" search result in the admin editor (Wholesale Products)
+export interface IWholesaleProductOption {
+  id: string;
+  name: string;
+  code: string;
+  image: string | null;
+  colorOptions: string[];
+}
+
+export interface IWholesaleReportRow extends IWholesaleTotals {
+  id: string;
+  invoiceNo: number;
+  name: string;
+  phone: string;
+  businessName: string | null;
+  completedAt: string;
+  deliveryCharge: number;
+  paidAmount: number;
+}
+
+export interface IWholesaleReport {
+  summary: {
+    sales: IPeriodSummary;
+    cost: IPeriodSummary;
+    profit: IPeriodSummary;
+    pairs: IPeriodSummary;
+    due: IPeriodSummary;
+  };
+  items: IWholesaleReportRow[];
+  totals: {
+    sales: number;
+    pairs: number;
+    subtotal: number;
+    deliveryCharge: number;
+    total: number;
+    cost: number;
+    profit: number;
+    paid: number;
+    due: number;
+  };
 }
 
 const fail = (error: unknown, fallback: string): never => {
@@ -73,10 +148,7 @@ export const getWholesaleRequests = async (params: {
   }
 };
 
-export const updateWholesaleRequest = async (
-  id: string,
-  payload: { status?: WholesaleRequestStatus; adminNote?: string },
-) => {
+export const updateWholesaleRequest = async (id: string, payload: IUpdateWholesaleRequest) => {
   try {
     return (await httpClient.patch<IWholesaleRequest>(`/wholesale-requests/${id}`, payload)).data;
   } catch (error) {
@@ -89,5 +161,27 @@ export const deleteWholesaleRequest = async (id: string) => {
     return (await httpClient.delete(`/wholesale-requests/${id}`)).data;
   } catch (error) {
     return fail(error, "Failed to delete request");
+  }
+};
+
+export const searchWholesaleProducts = async (searchTerm?: string) => {
+  try {
+    return (
+      (
+        await httpClient.get<IWholesaleProductOption[]>("/wholesale-requests/products", {
+          params: { searchTerm },
+        })
+      ).data ?? []
+    );
+  } catch (error) {
+    return fail(error, "Failed to load products");
+  }
+};
+
+export const getWholesaleReport = async (params: { startDate?: string; endDate?: string }) => {
+  try {
+    return (await httpClient.get<IWholesaleReport>("/wholesale-requests/report", { params })).data;
+  } catch (error) {
+    return fail(error, "Failed to load wholesale report");
   }
 };

@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { IOrder } from "@/types/order.types";
 import { ISiteSetting } from "@/types/siteSetting.types";
 
-const escapeHtml = (value: unknown) =>
+export const escapeHtml = (value: unknown) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -11,7 +11,7 @@ const escapeHtml = (value: unknown) =>
     .replace(/'/g, "&#39;");
 
 // "৳990" for whole amounts, "৳990.50" otherwise
-const money = (value: number) => {
+export const money = (value: number) => {
   const amount = value || 0;
   return `৳${amount.toLocaleString("en-US", {
     minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
@@ -130,7 +130,7 @@ const INVOICE_CSS = `
   .page + .page { break-before: page; }
 `;
 
-const wrapDocument = (title: string, pages: string[]) => `<!doctype html>
+export const wrapDocument = (title: string, pages: string[]) => `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8" />
@@ -302,7 +302,7 @@ const buildInvoiceHtml = (order: IOrder, site: ISiteSetting | null | undefined) 
 
 // Prints an A4 page from a hidden iframe, so the page's own print styles
 // (80mm POS receipt, label sheet) don't apply to it.
-const printHtml = (html: string) => {
+export const printHtml = (html: string) => {
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   Object.assign(iframe.style, {

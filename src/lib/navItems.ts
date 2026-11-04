@@ -117,6 +117,11 @@ export const adminNavItems: NavSection[] = [
         icon: "Boxes",
       },
       {
+        title: "Wholesale Products",
+        href: "/admin/dashboard/wholesale-products",
+        icon: "PackagePlus",
+      },
+      {
         title: "Blocked Numbers",
         href: "/admin/dashboard/blocked-numbers",
         icon: "ShieldBan",
@@ -240,6 +245,11 @@ export const adminNavItems: NavSection[] = [
         title: "Profit & Loss",
         href: "/admin/dashboard/profit-loss-report",
         icon: "TrendingUp",
+      },
+      {
+        title: "Wholesale Report",
+        href: "/admin/dashboard/wholesale-report",
+        icon: "HandCoins",
       },
       {
         title: "Expense Report",

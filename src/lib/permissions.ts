@@ -45,6 +45,7 @@ const PAGE_RULES: [string, PageRule][] = [
   ["/admin/dashboard/order-returns", "return.manage"],
   ["/admin/dashboard/blocked-numbers", "order.update"],
   ["/admin/dashboard/wholesale-requests", "order.view"],
+  ["/admin/dashboard/wholesale-products", ["product.create", "product.update"]],
   ["/admin/dashboard/pos-orders", "pos.use"],
   ["/admin/dashboard/pos", "pos.use"],
 
@@ -63,6 +64,7 @@ const PAGE_RULES: [string, PageRule][] = [
 
   ["/admin/dashboard/sales-report", "report.view"],
   ["/admin/dashboard/profit-loss-report", "report.view"],
+  ["/admin/dashboard/wholesale-report", "report.view"],
   ["/admin/dashboard/analytics", "report.view"],
   ["/admin/dashboard/district-report", "report.view"],
   ["/admin/dashboard/customer-segment-report", "report.view"],

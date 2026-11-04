@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getHomePromo } from "@/services/homePromo.services";
 
-// Wide banner above "All Products", set from Dashboard → Pages → Home.
+// Wide banner right under the "All Products" cards, set from Dashboard → Pages → Home.
 // Hidden when empty or switched off.
 export default function ProductsBanner() {
   const { data: promo } = useQuery({

@@ -25,11 +25,10 @@ function MaybeLink({
   );
 }
 
-// Full-width banner. The height stays what it was when the banner sat inside
-// the padded 1440px column (3:1 of that width, so at most 459px); on wide
-// screens the image fills the extra width and trims a little top and bottom.
-const HERO_SIZE =
-  "w-full aspect-2/1 md:aspect-auto md:h-[calc((100vw-3rem)/3)] lg:h-[min(calc((100vw-4rem)/3),459px)]";
+// Full-width banner, 1920 x 800 on desktop: the height follows that 2.4:1
+// ratio as the screen narrows and stops at 800px on wider screens (where the
+// image fills the extra width and trims a little top and bottom).
+const HERO_SIZE = "w-full aspect-2/1 md:aspect-auto md:h-[min(calc(100vw/2.4),800px)]";
 
 export default function HeroCarousel() {
   const [slides, setSlides] = useState<any[]>([]);

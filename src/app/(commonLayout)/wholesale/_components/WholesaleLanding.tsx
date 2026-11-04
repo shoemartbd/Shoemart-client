@@ -28,11 +28,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getStorefrontCategories } from "@/services/category.services";
-import { IWholesaleGalleryItem } from "@/services/wholesaleGallery.services";
 import WholesaleForm from "./WholesaleForm";
 import WholesaleHeroImage from "./WholesaleHeroImage";
 import WholesaleProductView from "./WholesaleProductView";
-import { scrollToWholesaleForm as scrollToForm, WHOLESALE_FORM_ID } from "./wholesaleOptions";
+import {
+  IWholesalePick,
+  scrollToWholesaleForm as scrollToForm,
+  WHOLESALE_FORM_ID,
+} from "./wholesaleOptions";
 
 const REASONS = [
   {
@@ -74,7 +77,7 @@ const STEPS = [
 const FAQS = [
   {
     q: "What is the minimum order quantity?",
-    a: "It depends on the product and category. Tell us what you need in the form and our team will confirm the minimum quantity for those items.",
+    a: "Wholesale orders usually go by 6, 12, 18 or 24 pairs per design, and you can enter any other number too. Pick the products in Product View, set the pairs for each and our team will confirm the price.",
   },
   {
     q: "Can I mix different styles and sizes in one order?",
@@ -142,10 +145,8 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
   const categories: { name: string; image?: string | null }[] = (data?.data || [])
     .filter((c: any) => c.isActive !== false && !c.parentId)
     .map((c: any) => ({ name: c.name, image: c.image }));
-  // The form's quantity, held here so other sections can pre-fill it
-  const [quantity, setQuantity] = useState("");
-  // Products picked in the Product View gallery, sent with the form
-  const [pickedProducts, setPickedProducts] = useState<IWholesaleGalleryItem[]>([]);
+  // Products picked in the Product View gallery (with pairs), sent with the form
+  const [pickedProducts, setPickedProducts] = useState<IWholesalePick[]>([]);
   const [galleryOpen, setGalleryOpen] = useState(false);
 
   return (
@@ -161,7 +162,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
           className="pointer-events-none absolute -left-32 -top-32 size-[420px] rounded-full bg-[#d7141f]/25 blur-[120px]"
         />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 md:py-14 lg:grid-cols-2 lg:px-8">
+        <div className="relative mx-auto grid max-w-8xl items-center gap-12 px-4 py-10 sm:px-6 md:py-14 lg:grid-cols-2 lg:px-8">
           <div>
             <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#d7141f]/40 bg-[#d7141f]/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#ff4d57]">
               <span className="size-1.5 rounded-full bg-[#ff4d57]" />
@@ -176,31 +177,32 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
               Bangladesh.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* Three actions: wrap on phones, one row on desktop */}
+            <div className="mt-8 flex flex-wrap gap-3 lg:flex-nowrap">
               <Button
                 size="lg"
                 onClick={scrollToForm}
-                className="h-12 gap-2 rounded-full bg-[#d7141f] px-6 font-bold text-white hover:bg-[#b5121c]"
+                className="h-12 shrink-0 gap-2 rounded-full bg-[#d7141f] px-6 lg:px-5 font-bold text-white hover:bg-[#b5121c]"
               >
                 Request Wholesale <ArrowRight className="size-4" />
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => setGalleryOpen(true)}
+                className="h-12 shrink-0 gap-2 rounded-full bg-amber-400 px-6 lg:px-5 font-bold text-black hover:bg-amber-300"
+              >
+                <Images className="size-5" /> Product View
               </Button>
               {whatsappHref && (
                 <a
                   href={whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-12 items-center gap-2 rounded-full border border-white/20 px-6 font-bold transition-colors hover:border-[#25D366] hover:bg-[#25D366] hover:text-white"
+                  className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full border border-white/20 px-6 lg:px-5 font-bold transition-colors hover:border-[#25D366] hover:bg-[#25D366] hover:text-white"
                 >
                   <FaWhatsapp className="size-5" /> {whatsapp}
                 </a>
               )}
-              <button
-                type="button"
-                onClick={() => setGalleryOpen(true)}
-                className="inline-flex h-12 items-center gap-2 rounded-md border-2 border-white/80 px-6 font-bold uppercase tracking-wide transition-colors hover:bg-white hover:text-black"
-              >
-                <Images className="size-5" /> Product View
-              </button>
             </div>
 
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-300">
@@ -217,7 +219,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
 
         {categories.length > 0 && (
           <div className="relative border-t border-white/10">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-5 text-sm font-semibold uppercase tracking-wider text-neutral-400">
+            <div className="mx-auto flex max-w-8xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-5 text-sm font-semibold uppercase tracking-wider text-neutral-400">
               {categories.map(({ name }) => (
                 <span key={name} className="flex items-center gap-2">
                   <PackageCheck className="size-4 text-[#ff4d57]" /> {name}
@@ -229,7 +231,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
       </section>
 
       {/* Why Shoe Mart */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <section className="mx-auto max-w-8xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
         <SectionHeading
           eyebrow="Why Shoe Mart"
           title="Why buy wholesale"
@@ -254,7 +256,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
 
       {/* Who we work with */}
       <section className="bg-muted/50">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="mx-auto max-w-8xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
           <SectionHeading
             eyebrow="Who We Serve"
             title="Whatever your business,"
@@ -278,7 +280,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
 
       {/* How it works */}
       <section className="bg-[#0a0a0a] text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="mx-auto max-w-8xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
           <SectionHeading eyebrow="Process" title="How it" highlight="works" dark />
           <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step, i) => (
@@ -310,7 +312,7 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
       </section>
 
       {/* FAQ + form */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <section className="mx-auto max-w-8xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-5 lg:gap-14">
           <div className="lg:col-span-2">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-brand-red">
@@ -350,8 +352,6 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
               </p>
               <WholesaleForm
                 categories={categories.map((c) => c.name)}
-                quantity={quantity}
-                onQuantityChange={setQuantity}
                 products={pickedProducts}
                 onProductsChange={setPickedProducts}
                 onBrowseProducts={() => setGalleryOpen(true)}

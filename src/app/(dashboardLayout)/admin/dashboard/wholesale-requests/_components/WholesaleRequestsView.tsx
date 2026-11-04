@@ -5,27 +5,10 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Boxes, Eye, Loader2, Phone, Search, Trash2 } from "lucide-react";
+import { Boxes, Loader2, Pencil, Phone, Search, Trash2 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   deleteWholesaleRequest,
   getWholesaleRequests,
@@ -33,28 +16,14 @@ import {
   updateWholesaleRequest,
   WholesaleRequestStatus,
 } from "@/services/wholesaleRequest.services";
+import { wholesaleInvoiceNo } from "@/lib/printWholesaleInvoice";
 import { cn } from "@/lib/utils";
 import { confirmAction } from "@/lib/confirmAction";
+import WholesaleRequestEditor from "./WholesaleRequestEditor";
+import { STATUSES, StatusSelect, statusOf, whatsappHref } from "./wholesaleStatus";
 
-const STATUSES: { value: WholesaleRequestStatus; label: string; tone: string }[] = [
-  { value: "NEW", label: "New", tone: "bg-red-500/10 text-red-700 dark:text-red-400" },
-  {
-    value: "CONTACTED",
-    label: "Contacted",
-    tone: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  },
-  {
-    value: "CLOSED",
-    label: "Closed",
-    tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  },
-];
-
-const statusOf = (value: WholesaleRequestStatus) =>
-  STATUSES.find((s) => s.value === value) ?? STATUSES[0];
-
-// 017... -> 88017... for wa.me
-const whatsappHref = (phone: string) => `https://wa.me/88${phone}`;
+const taka = (n: number) =>
+  `৳${(Number(n) || 0).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
 export default function WholesaleRequestsView() {
   const queryClient = useQueryClient();
@@ -62,9 +31,7 @@ export default function WholesaleRequestsView() {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [viewing, setViewing] = useState<IWholesaleRequest | null>(null);
-  const [note, setNote] = useState("");
-  const [isSavingNote, setIsSavingNote] = useState(false);
+  const [editing, setEditing] = useState<IWholesaleRequest | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(search.trim()), 400);
@@ -83,12 +50,9 @@ export default function WholesaleRequestsView() {
   const summary = data?.summary;
   const total = summary ? Object.values(summary).reduce((a, b) => a + b, 0) : 0;
 
-  const refresh = () =>
+  const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["wholesale-requests"] });
-
-  const openDetails = (row: IWholesaleRequest) => {
-    setViewing(row);
-    setNote(row.adminNote ?? "");
+    void queryClient.invalidateQueries({ queryKey: ["wholesale-report"] });
   };
 
   const changeStatus = async (row: IWholesaleRequest, status: WholesaleRequestStatus) => {
@@ -96,7 +60,6 @@ export default function WholesaleRequestsView() {
     try {
       await updateWholesaleRequest(row.id, { status });
       toast.success(`Marked as ${statusOf(status).label}`);
-      if (viewing?.id === row.id) setViewing({ ...row, status });
       refresh();
     } catch (error) {
       toast.error((error as Error).message || "Failed to update");
@@ -105,25 +68,13 @@ export default function WholesaleRequestsView() {
     }
   };
 
-  const saveNote = async () => {
-    if (!viewing) return;
-    setIsSavingNote(true);
-    try {
-      await updateWholesaleRequest(viewing.id, { adminNote: note });
-      toast.success("Note saved");
-      setViewing(null);
-      refresh();
-    } catch (error) {
-      toast.error((error as Error).message || "Failed to save note");
-    } finally {
-      setIsSavingNote(false);
-    }
-  };
-
   const handleDelete = async (row: IWholesaleRequest) => {
     const ok = await confirmAction({
       title: `Delete request from ${row.name}?`,
-      text: "This can't be undone.",
+      text:
+        row.status === "COMPLETED"
+          ? "This sale will also be removed from the wholesale report. This can't be undone."
+          : "This can't be undone.",
       confirmText: "Delete",
     });
     if (!ok) return;
@@ -131,7 +82,7 @@ export default function WholesaleRequestsView() {
     try {
       await deleteWholesaleRequest(row.id);
       toast.success("Request deleted");
-      if (viewing?.id === row.id) setViewing(null);
+      if (editing?.id === row.id) setEditing(null);
       refresh();
     } catch (error) {
       toast.error((error as Error).message || "Failed to delete");
@@ -151,13 +102,17 @@ export default function WholesaleRequestsView() {
         <div>
           <h3 className="text-2xl font-bold">Wholesale Requests</h3>
           <p className="text-muted-foreground">
-            Bulk order enquiries sent from the{" "}
+            Bulk orders from the{" "}
             <Link href="/wholesale" target="_blank" className="font-medium text-primary underline">
               wholesale page
             </Link>
-            . Call the buyer, then mark the request as contacted or closed.
+            . Open one to edit products, pairs and prices, print the invoice and mark the sale
+            complete.
           </p>
         </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/dashboard/wholesale-report">Wholesale Report</Link>
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -184,7 +139,7 @@ export default function WholesaleRequestsView() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, phone, business or location"
+            placeholder="Search name, phone, business or invoice no"
             className="h-10 rounded-full pl-9"
           />
         </div>
@@ -207,12 +162,13 @@ export default function WholesaleRequestsView() {
           </div>
         ) : (
           <div className={cn("overflow-x-auto", isFetching && "opacity-60")}>
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[980px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 font-semibold">Invoice</th>
                   <th className="px-4 py-3 font-semibold">Buyer</th>
                   <th className="px-4 py-3 font-semibold">Business</th>
-                  <th className="px-4 py-3 font-semibold">Interested In</th>
+                  <th className="px-4 py-3 font-semibold">Order</th>
                   <th className="px-4 py-3 font-semibold">Received</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 text-right font-semibold">Action</th>
@@ -221,6 +177,9 @@ export default function WholesaleRequestsView() {
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id} className="border-b align-top last:border-0 hover:bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-xs font-semibold">
+                      {wholesaleInvoiceNo(row.invoiceNo)}
+                    </td>
                     <td className="px-4 py-3">
                       <p className="font-semibold">{row.name}</p>
                       <div className="mt-1 flex items-center gap-3 text-xs">
@@ -245,27 +204,31 @@ export default function WholesaleRequestsView() {
                       </p>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex max-w-[220px] flex-wrap gap-1">
-                        {row.categories.length > 0
-                          ? row.categories.map((c) => (
-                              <span key={c} className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                                {c}
-                              </span>
-                            ))
-                          : <span className="text-muted-foreground">—</span>}
-                      </div>
-                      {row.quantity && (
-                        <p className="mt-1 text-xs font-semibold">{row.quantity}</p>
-                      )}
-                      {(row.products?.length ?? 0) > 0 && (
+                      {row.products.length > 0 ? (
                         <button
                           type="button"
-                          onClick={() => openDetails(row)}
-                          className="mt-1 text-xs font-semibold text-primary hover:underline"
+                          onClick={() => setEditing(row)}
+                          className="text-left hover:text-primary"
                         >
-                          {row.products.length} product{row.products.length === 1 ? "" : "s"} selected
+                          <p className="font-semibold">
+                            {row.products.length} product{row.products.length === 1 ? "" : "s"} ·{" "}
+                            {row.totals.pairs} pairs
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {row.totals.subtotal > 0
+                              ? `Total ${taka(row.totals.total)}`
+                              : "Price not set yet"}
+                          </p>
                         </button>
+                      ) : (
+                        <span className="text-muted-foreground">No products</span>
                       )}
+                      {row.categories.length > 0 && (
+                        <p className="mt-1 max-w-[220px] truncate text-xs text-muted-foreground">
+                          {row.categories.join(", ")}
+                        </p>
+                      )}
+                      {row.quantity && <p className="mt-0.5 text-xs">{row.quantity}</p>}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
                       {format(new Date(row.createdAt), "d MMM yyyy, h:mm a")}
@@ -279,8 +242,8 @@ export default function WholesaleRequestsView() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => openDetails(row)} className="gap-1.5">
-                          <Eye className="size-3.5" /> View
+                        <Button size="sm" variant="outline" onClick={() => setEditing(row)} className="gap-1.5">
+                          <Pencil className="size-3.5" /> Manage
                         </Button>
                         <Button
                           size="icon"
@@ -302,143 +265,17 @@ export default function WholesaleRequestsView() {
         )}
       </div>
 
-      <Dialog open={Boolean(viewing)} onOpenChange={(open) => !open && setViewing(null)}>
-        <DialogContent className="max-w-lg">
-          {viewing && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{viewing.name}</DialogTitle>
-                <DialogDescription>
-                  Received {format(new Date(viewing.createdAt), "d MMM yyyy, h:mm a")}
-                </DialogDescription>
-              </DialogHeader>
-
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                {[
-                  ["Phone", viewing.phone],
-                  ["Email", viewing.email],
-                  ["Business", viewing.businessName],
-                  ["Business Type", viewing.businessType],
-                  ["Location", viewing.location],
-                  ["Quantity", viewing.quantity],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-xs text-muted-foreground">{label}</dt>
-                    <dd className="font-medium break-words">{value || "—"}</dd>
-                  </div>
-                ))}
-                <div className="col-span-2">
-                  <dt className="text-xs text-muted-foreground">Interested In</dt>
-                  <dd className="font-medium">
-                    {viewing.categories.length ? viewing.categories.join(", ") : "—"}
-                  </dd>
-                </div>
-                {(viewing.products?.length ?? 0) > 0 && (
-                  <div className="col-span-2">
-                    <dt className="mb-1.5 text-xs text-muted-foreground">
-                      Selected Products ({viewing.products.length})
-                    </dt>
-                    <dd>
-                      <ul className="grid max-h-60 grid-cols-2 gap-2 overflow-y-auto" data-lenis-prevent>
-                        {viewing.products.map((p) => (
-                          <li key={p.productId} className="flex items-center gap-2 rounded-lg border p-1.5">
-                            <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
-                              {p.image && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={p.image} alt="" className="h-full w-full object-cover" />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-semibold" title={p.name}>{p.name}</p>
-                              <p className="truncate font-mono text-[11px] text-muted-foreground">{p.code}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </dd>
-                  </div>
-                )}
-                <div className="col-span-2">
-                  <dt className="text-xs text-muted-foreground">Requirements</dt>
-                  <dd className="whitespace-pre-wrap rounded-lg bg-muted/50 p-3">
-                    {viewing.message || "—"}
-                  </dd>
-                </div>
-              </dl>
-
-              <div className="flex items-center gap-3">
-                <Label className="shrink-0">Status</Label>
-                <StatusSelect
-                  value={viewing.status}
-                  disabled={busyId === viewing.id}
-                  onChange={(status) => changeStatus(viewing, status)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="ws-note">Admin Note</Label>
-                <Textarea
-                  id="ws-note"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Call summary, quoted price, follow-up date..."
-                  rows={3}
-                />
-              </div>
-
-              <DialogFooter className="gap-2 sm:justify-between">
-                <div className="flex gap-2">
-                  <Button asChild variant="outline" size="sm">
-                    <a href={`tel:${viewing.phone}`}>
-                      <Phone className="size-3.5" /> Call
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <a href={whatsappHref(viewing.phone)} target="_blank" rel="noopener noreferrer">
-                      <FaWhatsapp className="size-3.5" /> WhatsApp
-                    </a>
-                  </Button>
-                </div>
-                <Button onClick={saveNote} disabled={isSavingNote}>
-                  {isSavingNote && <Loader2 className="size-4 animate-spin" />}
-                  Save Note
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      {editing && (
+        <WholesaleRequestEditor
+          key={`${editing.id}-${editing.updatedAt}`}
+          request={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(updated) => {
+            setEditing(updated);
+            refresh();
+          }}
+        />
+      )}
     </div>
-  );
-}
-
-function StatusSelect({
-  value,
-  disabled,
-  onChange,
-}: {
-  value: WholesaleRequestStatus;
-  disabled?: boolean;
-  onChange: (status: WholesaleRequestStatus) => void;
-}) {
-  return (
-    <Select
-      value={value}
-      disabled={disabled}
-      onValueChange={(v) => onChange(v as WholesaleRequestStatus)}
-    >
-      <SelectTrigger
-        className={cn("h-8 w-32 border-0 text-xs font-bold", statusOf(value).tone)}
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {STATUSES.map((s) => (
-          <SelectItem key={s.value} value={s.value}>
-            {s.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
   );
 }

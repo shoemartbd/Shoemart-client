@@ -122,6 +122,8 @@
 }
 
 @theme inline {
+  /* Site content width (max-w-8xl = 1408px) */
+  --container-8xl: 88rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

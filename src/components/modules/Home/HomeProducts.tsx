@@ -39,7 +39,7 @@ export default function HomeProducts() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="space-y-4">
               <Skeleton className="h-64 w-full rounded-2xl" />
@@ -50,7 +50,7 @@ export default function HomeProducts() {
           ))}
         </div>
       ) : products.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

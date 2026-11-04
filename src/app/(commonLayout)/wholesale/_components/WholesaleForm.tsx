@@ -17,8 +17,15 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { createWholesaleRequest } from "@/services/wholesaleRequest.services";
-import { IWholesaleGalleryItem } from "@/services/wholesaleGallery.services";
-import { QUANTITY_TIERS } from "./wholesaleOptions";
+import ColorDot from "@/components/shared/ColorDot";
+import {
+  DEFAULT_PAIRS,
+  IWholesalePick,
+  MAX_PAIRS,
+  PAIR_PRESETS,
+  pickImage,
+  pickKey,
+} from "./wholesaleOptions";
 
 const BUSINESS_TYPES = [
   "Retail Shop",
@@ -41,21 +48,17 @@ const EMPTY = {
 
 type Field = keyof typeof EMPTY;
 
-// Quantity and picked products are held by the page, so the hero card and
-// the Product View gallery can fill them in
+// Picked products (with their pairs) are held by the page, so the Product
+// View gallery can fill them in
 export default function WholesaleForm({
   categories,
-  quantity,
-  onQuantityChange,
   products,
   onProductsChange,
   onBrowseProducts,
 }: {
   categories: string[];
-  quantity: string;
-  onQuantityChange: (quantity: string) => void;
-  products: IWholesaleGalleryItem[];
-  onProductsChange: (products: IWholesaleGalleryItem[]) => void;
+  products: IWholesalePick[];
+  onProductsChange: (products: IWholesalePick[]) => void;
   onBrowseProducts: () => void;
 }) {
   const [values, setValues] = useState(EMPTY);
@@ -67,6 +70,23 @@ export default function WholesaleForm({
   const set = (field: Field) => (value: string) => {
     setValues((v) => ({ ...v, [field]: value }));
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
+  };
+
+  const totalPairs = products.reduce((sum, p) => sum + (p.quantity || 0), 0);
+  const setPairs = (key: string, quantity: number) =>
+    onProductsChange(products.map((p) => (pickKey(p) === key ? { ...p, quantity } : p)));
+  // Change a line's colour; picking a colour already on another line merges the two
+  const setColor = (key: string, color: string) => {
+    const line = products.find((p) => pickKey(p) === key);
+    if (!line) return;
+    const twin = products.find((p) => p.id === line.id && p.color === color && pickKey(p) !== key);
+    onProductsChange(
+      twin
+        ? products
+            .filter((p) => pickKey(p) !== key)
+            .map((p) => (p === twin ? { ...p, quantity: p.quantity + line.quantity } : p))
+        : products.map((p) => (pickKey(p) === key ? { ...p, color } : p)),
+    );
   };
 
   const toggleCategory = (name: string) =>
@@ -83,6 +103,14 @@ export default function WholesaleForm({
       next.email = "Enter a valid email";
     }
     setErrors(next);
+    if (products.some((p) => p.colors?.length > 0 && !p.color)) {
+      toast.error("Choose a colour for each selected product");
+      return false;
+    }
+    if (products.some((p) => !p.quantity || p.quantity < 1)) {
+      toast.error("Enter how many pairs you want for each selected product");
+      return false;
+    }
     return Object.keys(next).length === 0;
   };
 
@@ -93,13 +121,15 @@ export default function WholesaleForm({
     try {
       await createWholesaleRequest({
         ...values,
-        quantity,
         categories: picked,
-        productIds: products.map((p) => p.id),
+        items: products.map((p) => ({
+          productId: p.id,
+          quantity: p.quantity,
+          ...(p.color && { color: p.color }),
+        })),
       });
       setSent(true);
       setValues(EMPTY);
-      onQuantityChange("");
       onProductsChange([]);
       setPicked([]);
     } catch (error) {
@@ -187,21 +217,6 @@ export default function WholesaleForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Estimated Quantity</Label>
-          <Select value={quantity} onValueChange={onQuantityChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select quantity" />
-            </SelectTrigger>
-            <SelectContent>
-              {QUANTITY_TIERS.map((q) => (
-                <SelectItem key={q.value} value={q.value}>
-                  {q.value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="ws-email">Email (optional)</Label>
           <Input
             id="ws-email"
@@ -246,7 +261,12 @@ export default function WholesaleForm({
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-medium">
-            Selected Products{products.length > 0 && ` (${products.length})`}
+            Selected Products
+            {products.length > 0 && (
+              <span className="ml-1 font-normal text-muted-foreground">
+                ({products.length} · {totalPairs} pairs)
+              </span>
+            )}
           </p>
           <button
             type="button"
@@ -258,30 +278,54 @@ export default function WholesaleForm({
           </button>
         </div>
         {products.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {products.map((p) => (
-              <li key={p.id} className="relative flex items-center gap-2 rounded-lg border p-1.5 pr-7">
-                <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
-                  <Image src={p.image} alt="" fill sizes="44px" className="object-cover" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold" title={p.name}>{p.name}</p>
-                  <p className="truncate font-mono text-[11px] text-muted-foreground">{p.code}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onProductsChange(products.filter((x) => x.id !== p.id))}
-                  aria-label={`Remove ${p.code}`}
-                  className="absolute right-1 top-1 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
-                >
-                  <X className="size-3.5" />
-                </button>
-              </li>
-            ))}
+          <ul className="space-y-2">
+            {products.map((p) => {
+              const key = pickKey(p);
+              return (
+                <li key={key} className="flex flex-col gap-2 rounded-lg border p-2 sm:flex-row sm:items-center">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-muted">
+                      <Image src={pickImage(p, p.color)} alt="" fill sizes="48px" className="object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold" title={p.name}>{p.name}</p>
+                      <p className="truncate font-mono text-[11px] text-muted-foreground">{p.code}</p>
+                      {p.colors?.length > 0 && (
+                        <Select value={p.color ?? ""} onValueChange={(c) => setColor(key, c)}>
+                          <SelectTrigger
+                            size="sm"
+                            aria-label={`Colour of ${p.code}`}
+                            className={cn("mt-1 h-7 w-auto min-w-32 gap-1.5 px-2 text-xs", !p.color && "border-destructive")}
+                          >
+                            <SelectValue placeholder="Choose colour" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {p.colors.map((c) => (
+                              <SelectItem key={c} value={c} className="text-xs">
+                                <ColorDot name={c} /> {c}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onProductsChange(products.filter((x) => pickKey(x) !== key))}
+                      aria-label={`Remove ${p.code}${p.color ? ` ${p.color}` : ""}`}
+                      className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                  <PairPicker value={p.quantity} onChange={(q) => setPairs(key, q)} label={p.code} />
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="rounded-lg border border-dashed px-3 py-2.5 text-xs text-muted-foreground">
-            Optional: pick the exact shoes you want from Product View.
+            Pick the shoes (and colours) you want from Product View, then choose the pairs for each (6, 12, 18, 24 or your own number).
           </p>
         )}
       </div>
@@ -309,5 +353,60 @@ export default function WholesaleForm({
         We only use your details to contact you about this request.
       </p>
     </form>
+  );
+}
+
+// Pairs for one product: quick 6 / 12 / 18 / 24 buttons or any number typed in
+function PairPicker({
+  value,
+  onChange,
+  label,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {PAIR_PRESETS.map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          aria-pressed={value === n}
+          className={cn(
+            "h-8 min-w-9 rounded-md border px-2 text-xs font-bold transition-colors",
+            value === n
+              ? "border-brand-red bg-brand-red text-white"
+              : "hover:border-brand-red hover:text-brand-red",
+          )}
+        >
+          {n}
+        </button>
+      ))}
+      <div className="flex items-center gap-1">
+        <Input
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={MAX_PAIRS}
+          value={value || ""}
+          onChange={(e) => {
+            const n = Math.floor(Number(e.target.value));
+            onChange(Number.isFinite(n) ? Math.min(Math.max(n, 0), MAX_PAIRS) : 0);
+          }}
+          onBlur={() => {
+            if (!value || value < 1) onChange(DEFAULT_PAIRS);
+          }}
+          aria-label={`Pairs of ${label}`}
+          placeholder="Custom"
+          className={cn(
+            "h-8 w-20 px-2 text-center text-xs font-bold",
+            !PAIR_PRESETS.includes(value) && value > 0 && "border-brand-red",
+          )}
+        />
+        <span className="text-xs text-muted-foreground">pairs</span>
+      </div>
+    </div>
   );
 }

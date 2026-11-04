@@ -2,20 +2,26 @@
 
 import { httpClient } from "@/lib/axios/httpClient";
 
-// One photo in the wholesale "Product View" gallery
+// One product in the wholesale "Product View" gallery
+// (from Dashboard -> Wholesale Products)
 export interface IWholesaleGalleryItem {
   id: string;
   name: string;
   code: string;
-  image: string;
+  image: string; // first photo
+  images: string[];
+  // Top-level category (the gallery groups by it)
   categoryId: string;
   categoryName: string;
+  categoryImage: string | null;
+  subcategoryName: string | null;
+  colors: string[];
+  colorImages: Record<string, string>; // colour -> its own photo
 }
 
-// Active products tagged "Wholesale", grouped client-side by category
 export const getWholesaleGallery = async () => {
   try {
-    const res = await httpClient.get<IWholesaleGalleryItem[]>("/products/wholesale-gallery");
+    const res = await httpClient.get<IWholesaleGalleryItem[]>("/wholesale-products/gallery");
     return res.data ?? [];
   } catch (error: unknown) {
     const message =

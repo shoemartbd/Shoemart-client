@@ -1,5 +1,7 @@
 // Product showcase labels. Keep in sync with the ProductHighlight enum on the
 // server. Used by the admin product form now and homepage sections later.
+// (The server's WHOLESALE value is no longer offered: wholesale products are
+// added from Dashboard -> Wholesale Products.)
 export const PRODUCT_HIGHLIGHTS = [
   {
     value: "NEW_ARRIVAL",
@@ -16,13 +18,6 @@ export const PRODUCT_HIGHLIGHTS = [
     value: "TOP_SELLING",
     label: "Top Selling",
     className: "bg-orange-500 text-white border-orange-500",
-  },
-  {
-    // Not a homepage section: shows the product in the wholesale page's
-    // "Product View" gallery (photo + code only)
-    value: "WHOLESALE",
-    label: "Wholesale",
-    className: "bg-violet-600 text-white border-violet-600",
   },
 ] as const;
 
