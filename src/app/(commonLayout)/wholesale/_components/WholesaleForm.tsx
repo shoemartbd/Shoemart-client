@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, Send } from "lucide-react";
+import Image from "next/image";
+import { CheckCircle2, Images, Loader2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { createWholesaleRequest } from "@/services/wholesaleRequest.services";
+import { IWholesaleGalleryItem } from "@/services/wholesaleGallery.services";
 import { QUANTITY_TIERS } from "./wholesaleOptions";
 
 const BUSINESS_TYPES = [
@@ -39,15 +41,22 @@ const EMPTY = {
 
 type Field = keyof typeof EMPTY;
 
-// Quantity is held by the page, so the hero card can pre-fill it
+// Quantity and picked products are held by the page, so the hero card and
+// the Product View gallery can fill them in
 export default function WholesaleForm({
   categories,
   quantity,
   onQuantityChange,
+  products,
+  onProductsChange,
+  onBrowseProducts,
 }: {
   categories: string[];
   quantity: string;
   onQuantityChange: (quantity: string) => void;
+  products: IWholesaleGalleryItem[];
+  onProductsChange: (products: IWholesaleGalleryItem[]) => void;
+  onBrowseProducts: () => void;
 }) {
   const [values, setValues] = useState(EMPTY);
   const [picked, setPicked] = useState<string[]>([]);
@@ -82,10 +91,16 @@ export default function WholesaleForm({
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      await createWholesaleRequest({ ...values, quantity, categories: picked });
+      await createWholesaleRequest({
+        ...values,
+        quantity,
+        categories: picked,
+        productIds: products.map((p) => p.id),
+      });
       setSent(true);
       setValues(EMPTY);
       onQuantityChange("");
+      onProductsChange([]);
       setPicked([]);
     } catch (error) {
       toast.error((error as Error).message || "Failed to send your request");
@@ -226,6 +241,50 @@ export default function WholesaleForm({
           </div>
         </fieldset>
       )}
+
+      {/* Products picked in the Product View gallery */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium">
+            Selected Products{products.length > 0 && ` (${products.length})`}
+          </p>
+          <button
+            type="button"
+            onClick={onBrowseProducts}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-red hover:underline"
+          >
+            <Images className="size-4" />
+            {products.length > 0 ? "Add more" : "Choose from Product View"}
+          </button>
+        </div>
+        {products.length > 0 ? (
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {products.map((p) => (
+              <li key={p.id} className="relative flex items-center gap-2 rounded-lg border p-1.5 pr-7">
+                <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+                  <Image src={p.image} alt="" fill sizes="44px" className="object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold" title={p.name}>{p.name}</p>
+                  <p className="truncate font-mono text-[11px] text-muted-foreground">{p.code}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onProductsChange(products.filter((x) => x.id !== p.id))}
+                  aria-label={`Remove ${p.code}`}
+                  className="absolute right-1 top-1 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="rounded-lg border border-dashed px-3 py-2.5 text-xs text-muted-foreground">
+            Optional: pick the exact shoes you want from Product View.
+          </p>
+        )}
+      </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="ws-message">Requirements (optional)</Label>

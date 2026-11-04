@@ -11,6 +11,7 @@ import {
   Building2,
   CheckCircle2,
   Factory,
+  Images,
   PackageCheck,
   Send,
   ShoppingBag,
@@ -27,6 +28,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getStorefrontCategories } from "@/services/category.services";
+import { IWholesaleGalleryItem } from "@/services/wholesaleGallery.services";
 import WholesaleForm from "./WholesaleForm";
 import WholesaleHeroImage from "./WholesaleHeroImage";
 import WholesaleProductView from "./WholesaleProductView";
@@ -142,6 +144,9 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
     .map((c: any) => ({ name: c.name, image: c.image }));
   // The form's quantity, held here so other sections can pre-fill it
   const [quantity, setQuantity] = useState("");
+  // Products picked in the Product View gallery, sent with the form
+  const [pickedProducts, setPickedProducts] = useState<IWholesaleGalleryItem[]>([]);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   return (
     <div className="overflow-x-hidden">
@@ -189,7 +194,13 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
                   <FaWhatsapp className="size-5" /> {whatsapp}
                 </a>
               )}
-              <WholesaleProductView />
+              <button
+                type="button"
+                onClick={() => setGalleryOpen(true)}
+                className="inline-flex h-12 items-center gap-2 rounded-md border-2 border-white/80 px-6 font-bold uppercase tracking-wide transition-colors hover:bg-white hover:text-black"
+              >
+                <Images className="size-5" /> Product View
+              </button>
             </div>
 
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-300">
@@ -341,11 +352,26 @@ export default function WholesaleLanding({ whatsapp }: { whatsapp: string | null
                 categories={categories.map((c) => c.name)}
                 quantity={quantity}
                 onQuantityChange={setQuantity}
+                products={pickedProducts}
+                onProductsChange={setPickedProducts}
+                onBrowseProducts={() => setGalleryOpen(true)}
               />
             </div>
           </div>
         </div>
       </section>
+
+      <WholesaleProductView
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        picked={pickedProducts}
+        onPickedChange={setPickedProducts}
+        onDone={() => {
+          setGalleryOpen(false);
+          // Let the dialog close before scrolling
+          setTimeout(scrollToForm, 150);
+        }}
+      />
     </div>
   );
 }

@@ -4,6 +4,14 @@ import { httpClient } from "@/lib/axios/httpClient";
 
 export type WholesaleRequestStatus = "NEW" | "CONTACTED" | "CLOSED";
 
+// A product picked in the wholesale "Product View" gallery (saved snapshot)
+export interface IWholesaleRequestProduct {
+  productId: string;
+  code: string;
+  name: string;
+  image: string | null;
+}
+
 export interface IWholesaleRequest {
   id: string;
   name: string;
@@ -14,6 +22,7 @@ export interface IWholesaleRequest {
   location: string | null;
   categories: string[];
   quantity: string | null;
+  products: IWholesaleRequestProduct[];
   message: string | null;
   status: WholesaleRequestStatus;
   adminNote: string | null;
@@ -30,6 +39,7 @@ export interface ICreateWholesaleRequest {
   location?: string;
   categories?: string[];
   quantity?: string;
+  productIds?: string[];
   message?: string;
 }
 

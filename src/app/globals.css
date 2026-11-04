@@ -49,8 +49,8 @@
   --sidebar-border: #e5e5e5;
   --sidebar-ring: #d7141f;
 
-  --font-sans: var(--font-poppins), Roboto, sans-serif;
-  --font-serif: var(--font-poppins), sans-serif;
+  --font-sans: var(--font-poppins), Poppins, sans-serif;
+  --font-serif: var(--font-poppins), Poppins, sans-serif;
   --font-mono: var(--font-geist-mono), Fira Code, monospace;
 
   --radius: 0.625rem;

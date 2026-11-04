@@ -43,10 +43,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      // Font variables must sit on <html>: that is where font-sans is applied
+      className={`${poppins.variable} ${geistMono.variable}`}
+    >
       <body
         suppressHydrationWarning
-        className={`${poppins.variable} ${geistMono.variable} antialiased`}
+        className="font-sans antialiased"
       >
         <ThemeProvider
           attribute="class"

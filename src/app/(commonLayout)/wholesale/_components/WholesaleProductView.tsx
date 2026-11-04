@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Folder, FolderOpen, Images, Loader2, MapPin, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Folder, FolderOpen, Loader2, MapPin, Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,13 +22,35 @@ interface Folder {
   items: IWholesaleGalleryItem[];
 }
 
+interface WholesaleProductViewProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  // Products the buyer picked for the wholesale request (held by the page)
+  picked: IWholesaleGalleryItem[];
+  onPickedChange: (picked: IWholesaleGalleryItem[]) => void;
+  // "Add to request": close and jump to the form
+  onDone: () => void;
+}
+
 // "Product View" on the wholesale hero: a folder per category, each opening a
-// gallery of shoe photos labelled with their name and code. Tapping a photo
-// points the buyer to the nearest showroom.
-export default function WholesaleProductView() {
-  const [open, setOpen] = useState(false);
+// gallery of shoe photos labelled with their name and code. Photos can be
+// ticked to add them to the wholesale request; tapping one shows it larger
+// with a pointer to the nearest showroom.
+export default function WholesaleProductView({
+  open,
+  onOpenChange,
+  picked,
+  onPickedChange,
+  onDone,
+}: WholesaleProductViewProps) {
   const [folderId, setFolderId] = useState<string | null>(null);
   const [selected, setSelected] = useState<IWholesaleGalleryItem | null>(null);
+
+  const isPicked = (item: IWholesaleGalleryItem) => picked.some((p) => p.id === item.id);
+  const togglePick = (item: IWholesaleGalleryItem) =>
+    onPickedChange(
+      isPicked(item) ? picked.filter((p) => p.id !== item.id) : [...picked, item],
+    );
 
   const { data: items = [], isLoading, isError } = useQuery({
     queryKey: ["wholesale-gallery"],
@@ -54,7 +76,7 @@ export default function WholesaleProductView() {
   const folder = folders.find((f) => f.id === folderId) ?? null;
 
   const handleOpenChange = (value: boolean) => {
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
       setFolderId(null);
       setSelected(null);
@@ -63,14 +85,6 @@ export default function WholesaleProductView() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex h-12 items-center gap-2 rounded-md border-2 border-white/80 px-6 font-bold uppercase tracking-wide transition-colors hover:bg-white hover:text-black"
-      >
-        <Images className="size-5" /> Product View
-      </button>
-
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
           className="flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl"
@@ -153,6 +167,11 @@ export default function WholesaleProductView() {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {f.items.length} {f.items.length === 1 ? "item" : "items"}
+                      {f.items.some(isPicked) && (
+                        <span className="ml-1.5 font-semibold text-[#d7141f]">
+                          &middot; {f.items.filter(isPicked).length} selected
+                        </span>
+                      )}
                     </p>
                   </button>
                 ))}
@@ -160,35 +179,82 @@ export default function WholesaleProductView() {
             ) : (
               /* Gallery: photo + code only */
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-                {folder.items.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSelected(item)}
-                    className="group overflow-hidden rounded-xl border bg-card text-left transition-shadow hover:shadow-md"
-                  >
-                    <div className="relative aspect-square bg-muted">
-                      <Image
-                        src={item.image}
-                        alt={`${item.name} (${item.code})`}
-                        fill
-                        sizes="(min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
+                {folder.items.map((item) => {
+                  const on = isPicked(item);
+                  return (
+                    <div
+                      key={item.id}
+                      className={`group relative overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md ${
+                        on ? "border-[#d7141f] ring-2 ring-[#d7141f]" : ""
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setSelected(item)}
+                        className="block w-full text-left"
+                      >
+                        <div className="relative aspect-square bg-muted">
+                          <Image
+                            src={item.image}
+                            alt={`${item.name} (${item.code})`}
+                            fill
+                            sizes="(min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="px-3 py-2 text-center">
+                          <p className="line-clamp-1 text-sm font-semibold" title={item.name}>
+                            {item.name}
+                          </p>
+                          <p className="truncate font-mono text-xs font-bold tracking-wide text-muted-foreground">
+                            {item.code}
+                          </p>
+                        </div>
+                      </button>
+                      {/* Tick to add to the wholesale request */}
+                      <button
+                        type="button"
+                        onClick={() => togglePick(item)}
+                        aria-pressed={on}
+                        aria-label={on ? `Remove ${item.code} from request` : `Add ${item.code} to request`}
+                        title={on ? "Remove from request" : "Add to request"}
+                        className={`absolute right-2 top-2 flex size-8 items-center justify-center rounded-full border-2 shadow transition-colors ${
+                          on
+                            ? "border-[#d7141f] bg-[#d7141f] text-white"
+                            : "border-white bg-black/40 text-white hover:bg-black/70"
+                        }`}
+                      >
+                        {on ? <Check className="size-4" strokeWidth={3} /> : <Plus className="size-4" strokeWidth={3} />}
+                      </button>
                     </div>
-                    <div className="px-3 py-2 text-center">
-                      <p className="line-clamp-1 text-sm font-semibold" title={item.name}>
-                        {item.name}
-                      </p>
-                      <p className="truncate font-mono text-xs font-bold tracking-wide text-muted-foreground">
-                        {item.code}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
+
+          {/* Picked products: send them to the request form */}
+          {picked.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 border-t bg-muted/40 px-4 py-3 sm:px-6">
+              <p className="text-sm font-semibold">
+                {picked.length} {picked.length === 1 ? "product" : "products"} selected
+              </p>
+              <button
+                type="button"
+                onClick={() => onPickedChange([])}
+                className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={onDone}
+                className="ml-auto inline-flex items-center gap-2 rounded-md bg-[#d7141f] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#b5121c]"
+              >
+                Add to wholesale request <ArrowRight className="size-4" />
+              </button>
+            </div>
+          )}
 
           {/* Photo clicked: larger view + showroom prompt (over the whole dialog) */}
             {selected && (
@@ -224,6 +290,25 @@ export default function WholesaleProductView() {
                         Code: {selected.code}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => togglePick(selected)}
+                      className={`inline-flex w-full items-center justify-center gap-2 rounded-md border-2 px-5 py-2.5 font-bold uppercase tracking-wide transition-colors ${
+                        isPicked(selected)
+                          ? "border-[#d7141f] bg-[#d7141f]/10 text-[#d7141f]"
+                          : "border-foreground/80 hover:bg-foreground hover:text-background"
+                      }`}
+                    >
+                      {isPicked(selected) ? (
+                        <>
+                          <Check className="size-5" /> Added to request
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="size-5" /> Add to wholesale request
+                        </>
+                      )}
+                    </button>
                     <Link
                       href="/our-stores"
                       className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#d7141f] px-5 py-3 font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#b5121c]"

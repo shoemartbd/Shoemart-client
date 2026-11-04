@@ -257,6 +257,15 @@ export default function WholesaleRequestsView() {
                       {row.quantity && (
                         <p className="mt-1 text-xs font-semibold">{row.quantity}</p>
                       )}
+                      {(row.products?.length ?? 0) > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => openDetails(row)}
+                          className="mt-1 text-xs font-semibold text-primary hover:underline"
+                        >
+                          {row.products.length} product{row.products.length === 1 ? "" : "s"} selected
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
                       {format(new Date(row.createdAt), "d MMM yyyy, h:mm a")}
@@ -324,6 +333,31 @@ export default function WholesaleRequestsView() {
                     {viewing.categories.length ? viewing.categories.join(", ") : "—"}
                   </dd>
                 </div>
+                {(viewing.products?.length ?? 0) > 0 && (
+                  <div className="col-span-2">
+                    <dt className="mb-1.5 text-xs text-muted-foreground">
+                      Selected Products ({viewing.products.length})
+                    </dt>
+                    <dd>
+                      <ul className="grid max-h-60 grid-cols-2 gap-2 overflow-y-auto" data-lenis-prevent>
+                        {viewing.products.map((p) => (
+                          <li key={p.productId} className="flex items-center gap-2 rounded-lg border p-1.5">
+                            <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+                              {p.image && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={p.image} alt="" className="h-full w-full object-cover" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-semibold" title={p.name}>{p.name}</p>
+                              <p className="truncate font-mono text-[11px] text-muted-foreground">{p.code}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
                 <div className="col-span-2">
                   <dt className="text-xs text-muted-foreground">Requirements</dt>
                   <dd className="whitespace-pre-wrap rounded-lg bg-muted/50 p-3">

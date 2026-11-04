@@ -9,7 +9,7 @@ export default function NotFound() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "'Inter', 'Segoe UI', sans-serif",
+        fontFamily: "var(--font-poppins), Poppins, sans-serif",
         overflow: "hidden",
         position: "relative",
       }}
