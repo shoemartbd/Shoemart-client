@@ -29,7 +29,8 @@ const swatchFor = (value: string) => {
 };
 
 // Sizes and colours of a variable product, shown over the bottom of the card
-// image on hover. Display only — choosing happens on the details page.
+// image on hover, on a see-through dark fade (same in light and dark mode).
+// Display only — choosing happens on the details page.
 export default function ProductCardOptions({ product }: { product: any }) {
   if (product?.type !== "VARIABLE" || !Array.isArray(product.attributes)) return null;
 
@@ -47,7 +48,7 @@ export default function ProductCardOptions({ product }: { product: any }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden translate-y-2 flex-col items-center gap-1.5 bg-white/95 px-2 py-2.5 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex dark:bg-slate-900/95"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden translate-y-2 flex-col items-center gap-1.5 bg-gradient-to-t from-black/55 via-black/20 to-transparent px-2 pb-2.5 pt-8 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex"
     >
       {ordered.map((attr) => {
         const values = (attr.values as unknown[]).map(String);
@@ -62,13 +63,13 @@ export default function ProductCardOptions({ product }: { product: any }) {
                 <span
                   key={value}
                   title={value}
-                  className="size-4 rounded-full ring-1 ring-black/15 ring-offset-1 ring-offset-white dark:ring-white/30 dark:ring-offset-slate-900"
+                  className="size-4 rounded-full shadow-sm ring-2 ring-white/80"
                   style={{ background: swatchFor(value) }}
                 />
               ) : (
                 <span
                   key={value}
-                  className="min-w-7 rounded border border-black/15 bg-white px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-slate-800 dark:border-white/20 dark:bg-slate-800 dark:text-slate-100"
+                  className="min-w-7 rounded border border-white/50 bg-white/15 px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-white shadow-sm backdrop-blur-[2px]"
                 >
                   {value}
                 </span>

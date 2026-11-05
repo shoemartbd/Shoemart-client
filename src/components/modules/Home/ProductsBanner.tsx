@@ -18,7 +18,7 @@ export default function ProductsBanner() {
   if (!image) return null;
 
   const banner = (
-    <div className="relative aspect-[1920/330] w-full overflow-hidden rounded-2xl bg-muted">
+    <div className="relative aspect-[1920/520] w-full overflow-hidden rounded-2xl bg-muted shadow-sm">
       <Image
         src={image}
         alt="Promotion"

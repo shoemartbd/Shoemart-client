@@ -175,6 +175,7 @@ function PromoForm({ promo }: { promo: IHomePromo }) {
         label="All Products Banner"
         hint='Shown right under the "All Products" cards.'
         state={productsBanner}
+        size={{ w: 1920, h: 520, label: "1920 × 520 px (wide, about 3.7:1)" }}
       />
 
       <div className="flex justify-end">
@@ -238,12 +239,15 @@ function BannerField({
   label,
   hint,
   state,
+  size = { w: 1920, h: 330, label: "1920 × 330 px (wide strip, about 6:1)" },
 }: {
   id: string;
   label: string;
   hint: string;
   state: ReturnType<typeof useBannerState>;
+  size?: { w: number; h: number; label: string };
 }) {
+  const ratio = { aspectRatio: `${size.w} / ${size.h}` };
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-4">
@@ -258,7 +262,7 @@ function BannerField({
       </div>
       <p className="text-xs text-muted-foreground">{hint}</p>
       <p className="text-sm font-medium text-primary">
-        Size: 1920 × 330 px (wide strip, about 6:1)
+        Size: {size.label}
       </p>
 
       {state.preview ? (
@@ -267,7 +271,8 @@ function BannerField({
           <img
             src={state.preview}
             alt="Banner preview"
-            className="aspect-[1920/330] w-full object-cover"
+            style={ratio}
+            className="w-full object-cover"
           />
           <div className="absolute right-2 top-2 flex gap-2">
             <label className="upload-btn inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs shadow">
@@ -292,7 +297,9 @@ function BannerField({
           </div>
         </div>
       ) : (
-        <label className="upload-zone flex aspect-[1920/330] min-h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl">
+        <label
+          style={ratio}
+          className="upload-zone flex min-h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl">
           <span className="upload-icon mb-1">
             <Upload className="size-5" />
           </span>

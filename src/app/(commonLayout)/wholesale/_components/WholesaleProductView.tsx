@@ -352,7 +352,7 @@ export default function WholesaleProductView({
             }}
           >
             <div
-              className="relative flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl sm:grid sm:grid-cols-[1.1fr_1fr]"
+              className="relative flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl sm:grid sm:h-full sm:max-h-[560px] sm:grid-cols-[1.1fr_1fr] sm:grid-rows-[minmax(0,1fr)]"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -365,8 +365,8 @@ export default function WholesaleProductView({
               </button>
 
               {/* Photo side */}
-              <div className="relative flex shrink-0 flex-col bg-gradient-to-br from-muted to-muted/40">
-                <div className="relative h-52 sm:h-auto sm:min-h-[440px] sm:flex-1">
+              <div className="relative flex shrink-0 flex-col bg-gradient-to-br from-muted to-muted/40 sm:h-full sm:min-h-0">
+                <div className="relative h-52 sm:h-auto sm:min-h-0 sm:flex-1">
                   <Image
                     key={viewImage ?? pickImage(selected, viewColor)}
                     src={viewImage ?? pickImage(selected, viewColor)}
@@ -423,7 +423,7 @@ export default function WholesaleProductView({
               </div>
 
               {/* Details side: scrolls on its own only if it ever has to */}
-              <div className="flex min-h-0 flex-1 flex-col">
+              <div className="flex min-h-0 flex-1 flex-col sm:h-full">
                 <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 sm:p-7">
                   <div className="pr-8">
                     <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#d7141f]">
@@ -502,43 +502,63 @@ export default function WholesaleProductView({
 
                 {/* Actions, always in view */}
                 <div className="grid shrink-0 grid-cols-2 gap-2 border-t bg-muted/30 p-3 sm:p-4">
+                  {/* Straight to the request form with what is picked */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!hasColors(selected) && !isPicked(selected)) togglePick(selected);
+                      setSelected(null);
+                      onDone();
+                    }}
+                    disabled={hasColors(selected) && picksOf(selected).length === 0}
+                    className="col-span-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#d7141f] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[#b5121c] disabled:cursor-not-allowed disabled:bg-muted-foreground/40"
+                  >
+                    {hasColors(selected) && picksOf(selected).length === 0 ? (
+                      <>Choose a colour first</>
+                    ) : (
+                      <>
+                        Add to wholesale request
+                        {hasColors(selected) && ` (${picksOf(selected).length})`}
+                        <ArrowRight className="size-4" />
+                      </>
+                    )}
+                  </button>
                   {hasColors(selected) ? (
                     <button
                       type="button"
                       onClick={() => setSelected(null)}
-                      disabled={picksOf(selected).length === 0}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#d7141f] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#b5121c] disabled:cursor-not-allowed disabled:bg-muted-foreground/40"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 px-3 py-2 text-xs font-bold transition-colors hover:bg-muted sm:text-sm"
                     >
-                      <Check className="size-4" />
-                      {picksOf(selected).length > 0
-                        ? `Done (${picksOf(selected).length})`
-                        : "Pick a colour"}
+                      Keep browsing
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => togglePick(selected)}
+                      onClick={() => {
+                        togglePick(selected);
+                        if (!isPicked(selected)) setSelected(null);
+                      }}
                       className={cn(
-                        "inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold transition-colors",
+                        "inline-flex items-center justify-center gap-1.5 rounded-full border-2 px-3 py-2 text-xs font-bold transition-colors sm:text-sm",
                         isPicked(selected)
-                          ? "border-2 border-[#d7141f] text-[#d7141f] hover:bg-[#d7141f]/10"
-                          : "bg-[#d7141f] text-white hover:bg-[#b5121c]",
+                          ? "border-[#d7141f] text-[#d7141f] hover:bg-[#d7141f]/10"
+                          : "hover:bg-muted",
                       )}
                     >
                       {isPicked(selected) ? (
                         <>
-                          <Check className="size-4" /> Added
+                          <X className="size-4" /> Remove
                         </>
                       ) : (
                         <>
-                          <Plus className="size-4" /> Add to request
+                          <Plus className="size-4" /> Add &amp; keep browsing
                         </>
                       )}
                     </button>
                   )}
                   <Link
                     href="/our-stores"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-foreground/80 px-4 py-2.5 text-sm font-bold transition-colors hover:bg-foreground hover:text-background"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-foreground/80 px-3 py-2 text-xs font-bold transition-colors hover:bg-foreground hover:text-background sm:text-sm"
                   >
                     <MapPin className="size-4" /> Showroom
                   </Link>
