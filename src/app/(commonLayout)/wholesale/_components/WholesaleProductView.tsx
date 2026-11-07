@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   ArrowRight,
@@ -500,15 +501,19 @@ export default function WholesaleProductView({
                   )}
                 </div>
 
-                {/* Actions, always in view */}
+                {/* Actions, always in view. Adding keeps the buyer in the gallery so
+                    they can pick as many products as they like; the request form
+                    is one tap away with everything picked so far. */}
                 <div className="grid shrink-0 grid-cols-2 gap-2 border-t bg-muted/30 p-3 sm:p-4">
-                  {/* Straight to the request form with what is picked */}
                   <button
                     type="button"
                     onClick={() => {
                       if (!hasColors(selected) && !isPicked(selected)) togglePick(selected);
+                      const n = hasColors(selected) ? picksOf(selected).length : 1;
+                      toast.success(
+                        `${selected.code} added${hasColors(selected) ? ` in ${n} colour${n === 1 ? "" : "s"}` : ""}. Pick more or open the request form.`,
+                      );
                       setSelected(null);
-                      onDone();
                     }}
                     disabled={hasColors(selected) && picksOf(selected).length === 0}
                     className="col-span-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#d7141f] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[#b5121c] disabled:cursor-not-allowed disabled:bg-muted-foreground/40"
@@ -517,45 +522,25 @@ export default function WholesaleProductView({
                       <>Choose a colour first</>
                     ) : (
                       <>
-                        Add to wholesale request
-                        {hasColors(selected) && ` (${picksOf(selected).length})`}
-                        <ArrowRight className="size-4" />
+                        <Plus className="size-4" strokeWidth={3} />
+                        {!hasColors(selected) && isPicked(selected)
+                          ? "Added · Continue browsing"
+                          : `Add${hasColors(selected) ? ` (${picksOf(selected).length})` : ""} & continue`}
                       </>
                     )}
                   </button>
-                  {hasColors(selected) ? (
-                    <button
-                      type="button"
-                      onClick={() => setSelected(null)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 px-3 py-2 text-xs font-bold transition-colors hover:bg-muted sm:text-sm"
-                    >
-                      Keep browsing
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        togglePick(selected);
-                        if (!isPicked(selected)) setSelected(null);
-                      }}
-                      className={cn(
-                        "inline-flex items-center justify-center gap-1.5 rounded-full border-2 px-3 py-2 text-xs font-bold transition-colors sm:text-sm",
-                        isPicked(selected)
-                          ? "border-[#d7141f] text-[#d7141f] hover:bg-[#d7141f]/10"
-                          : "hover:bg-muted",
-                      )}
-                    >
-                      {isPicked(selected) ? (
-                        <>
-                          <X className="size-4" /> Remove
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="size-4" /> Add &amp; keep browsing
-                        </>
-                      )}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelected(null);
+                      onDone();
+                    }}
+                    disabled={picked.length === 0}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-[#d7141f] px-3 py-2 text-xs font-bold text-[#d7141f] transition-colors hover:bg-[#d7141f]/10 disabled:cursor-not-allowed disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent sm:text-sm"
+                  >
+                    Go to request{picked.length > 0 && ` (${picked.length})`}
+                    <ArrowRight className="size-4" />
+                  </button>
                   <Link
                     href="/our-stores"
                     className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-foreground/80 px-3 py-2 text-xs font-bold transition-colors hover:bg-foreground hover:text-background sm:text-sm"
