@@ -73,6 +73,11 @@ export default function PosProductGrid({ products, refreshCart }: { products: an
               <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                 {product.name}
               </h3>
+              {(product.sku || product.variants?.[0]?.sku) && (
+                <p className="mb-1 truncate font-mono text-[11px] text-gray-400">
+                  {product.sku || `${product.variants[0].sku}${product.variants.length > 1 ? ` +${product.variants.length - 1}` : ""}`}
+                </p>
+              )}
               <div className="mt-auto flex justify-between items-end">
                 <span className="font-bold text-gray-900">
                   ৳{product.sellPrice?.toFixed(2) || "0.00"}

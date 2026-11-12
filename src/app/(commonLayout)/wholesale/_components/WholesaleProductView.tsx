@@ -17,6 +17,7 @@ import {
   MapPin,
   Palette,
   Plus,
+  Search,
   X,
 } from "lucide-react";
 import {
@@ -50,7 +51,8 @@ interface WholesaleProductViewProps {
   onDone: () => void;
 }
 
-const MAX_DOTS = 5;
+// Colour chips shown on a gallery card before "+N more"
+const MAX_CHIPS = 6;
 
 // "Product View" on the wholesale hero: a card per category (with its image),
 // each opening a gallery of shoe photos with name, code and colours.
@@ -85,7 +87,64 @@ export default function WholesaleProductView({
         : [...picked, { ...item, quantity: DEFAULT_PAIRS, color }],
     );
 
+  // Colours ticked on a gallery card but not yet added (per product)
+  const [drafts, setDrafts] = useState<Record<string, string[]>>({});
+  const savedColors = (item: IWholesaleGalleryItem) =>
+    picksOf(item).flatMap((p) => (p.color ? [p.color] : []));
+  const draftOf = (item: IWholesaleGalleryItem) => drafts[item.id] ?? savedColors(item);
+  const isDirty = (item: IWholesaleGalleryItem) => {
+    const draft = draftOf(item);
+    const saved = savedColors(item);
+    return draft.length !== saved.length || draft.some((c) => !saved.includes(c));
+  };
+  const toggleDraft = (item: IWholesaleGalleryItem, color: string) => {
+    const draft = draftOf(item);
+    setDrafts((d) => ({
+      ...d,
+      [item.id]: draft.includes(color) ? draft.filter((c) => c !== color) : [...draft, color],
+    }));
+  };
+  const clearDraft = (id: string) =>
+    setDrafts((d) => {
+      const next = { ...d };
+      delete next[id];
+      return next;
+    });
+
+  // Card "Add to request": saves the ticked colours (or the plain product)
+  const commitCard = (item: IWholesaleGalleryItem) => {
+    if (!hasColors(item)) {
+      togglePick(item);
+      if (!isPicked(item)) toast.success(`${item.code} added to your request`);
+      return;
+    }
+    const colors = draftOf(item);
+    if (colors.length === 0 && savedColors(item).length === 0) {
+      toast.error("Choose a colour first");
+      return;
+    }
+    const others = picked.filter((p) => p.id !== item.id);
+    onPickedChange([
+      ...others,
+      ...colors.map(
+        (c) =>
+          picked.find((p) => p.id === item.id && p.color === c) ?? {
+            ...item,
+            quantity: DEFAULT_PAIRS,
+            color: c,
+          },
+      ),
+    ]);
+    clearDraft(item.id);
+    toast.success(
+      colors.length === 0
+        ? `${item.code} removed from your request`
+        : `${item.code} added in ${colors.length} colour${colors.length === 1 ? "" : "s"}`,
+    );
+  };
+
   const openItem = (item: IWholesaleGalleryItem) => {
+    clearDraft(item.id);
     setSelected(item);
     setViewColor(picksOf(item).find((p) => p.color)?.color ?? null);
     setViewImage(null);
@@ -115,22 +174,41 @@ export default function WholesaleProductView({
 
   const category = categories.find((c) => c.id === categoryId) ?? null;
 
+  // Search by name, code, colour or category (inside the open category, or
+  // across every product from the category list)
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLowerCase();
+  const galleryItems = (category ? category.items : items).filter(
+    (item) =>
+      !query ||
+      [item.name, item.code, item.categoryName, item.subcategoryName ?? "", ...(item.colors ?? [])]
+        .join(" ")
+        .toLowerCase()
+        .includes(query),
+  );
+
   const handleOpenChange = (value: boolean) => {
     onOpenChange(value);
     if (!value) {
       setCategoryId(null);
       setSelected(null);
+      setSearch("");
     }
   };
 
   const hasColors = (item: IWholesaleGalleryItem) => (item.colors?.length ?? 0) > 0;
 
-  // Larger view: step through the products of the open category
-  const siblings = category?.items ?? [];
-  const selectedIndex = selected ? siblings.findIndex((i) => i.id === selected.id) : -1;
+  // Larger view: the arrows step through this product's photos (its own
+  // photos, then any colour photos)
+  const photos = selected
+    ? [...new Set([...(selected.images ?? []), ...Object.values(selected.colorImages ?? {})])]
+    : [];
+  const shownPhoto = selected ? (viewImage ?? pickImage(selected, viewColor)) : null;
+  const photoIndex = shownPhoto ? photos.indexOf(shownPhoto) : -1;
   const step = (dir: 1 | -1) => {
-    if (siblings.length < 2 || selectedIndex < 0) return;
-    openItem(siblings[(selectedIndex + dir + siblings.length) % siblings.length]);
+    if (photos.length < 2) return;
+    const from = photoIndex < 0 ? (dir === 1 ? -1 : 0) : photoIndex;
+    setViewImage(photos[(from + dir + photos.length) % photos.length]);
   };
   const toggleAllColors = (item: IWholesaleGalleryItem) => {
     const all = item.colors.every((c) => isPicked(item, c));
@@ -159,7 +237,7 @@ export default function WholesaleProductView({
         data-lenis-prevent
       >
         {/* Header */}
-        <div className="flex items-center gap-2 border-b px-4 py-3 pr-12 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2 border-b px-4 py-3 pr-12 sm:px-6">
           {category ? (
             <button
               type="button"
@@ -175,11 +253,32 @@ export default function WholesaleProductView({
             <LayoutGrid className="size-5 text-[#d7141f]" />
           )}
           <DialogTitle className="truncate text-base font-bold sm:text-lg">
-            {category ? category.name : "Product View"}
+            {category ? category.name : query ? "Search results" : "Product View"}
           </DialogTitle>
-          {category && (
-            <span className="text-sm text-muted-foreground">({category.items.length})</span>
+          {(category || query) && (
+            <span className="text-sm text-muted-foreground">({galleryItems.length})</span>
           )}
+          <div className="relative order-last w-full sm:order-none sm:ml-auto sm:w-64">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={category ? `Search in ${category.name}` : "Search name, code or colour"}
+              aria-label="Search products"
+              className="h-9 w-full rounded-full border bg-background pl-9 pr-8 text-sm outline-none transition-colors focus:border-[#d7141f] focus:ring-2 focus:ring-[#d7141f]/20"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
           <DialogDescription className="sr-only">
             Wholesale products by category. Each photo shows its product name, code and colours.
           </DialogDescription>
@@ -199,7 +298,7 @@ export default function WholesaleProductView({
               <Images className="mx-auto size-12 text-muted-foreground/40" />
               <p className="mt-3 font-semibold">No products here yet</p>
             </div>
-          ) : !category ? (
+          ) : !category && !query ? (
             /* Category cards with the category image */
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {categories.map((c) => {
@@ -239,17 +338,49 @@ export default function WholesaleProductView({
               })}
             </div>
           ) : (
-            /* Gallery */
+            /* Gallery: tick colours on the card, then Add to request */
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-              {category.items.map((item) => {
+              {galleryItems.length === 0 && (
+                <div className="col-span-full py-16 text-center">
+                  <Search className="mx-auto size-10 text-muted-foreground/40" />
+                  <p className="mt-3 font-semibold">No product matches &ldquo;{search.trim()}&rdquo;</p>
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="mt-2 text-sm font-semibold text-[#d7141f] hover:underline"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              )}
+              {galleryItems.map((item) => {
                 const picks = picksOf(item);
                 const on = picks.length > 0;
                 const colored = hasColors(item);
+                const draft = colored ? draftOf(item) : [];
+                const dirty = colored && isDirty(item);
+                const extra = colored ? item.colors.length - MAX_CHIPS : 0;
+
+                let label = "Add to request";
+                let tone = "solid";
+                if (!colored && on) {
+                  label = "Added";
+                  tone = "done";
+                } else if (colored && on && !dirty) {
+                  label = `Added (${picks.length})`;
+                  tone = "done";
+                } else if (colored && on && dirty) {
+                  label = draft.length === 0 ? "Remove from request" : `Update (${draft.length})`;
+                } else if (colored && draft.length > 0) {
+                  label = `Add (${draft.length}) to request`;
+                }
+                const needsColour = colored && !on && draft.length === 0;
+
                 return (
                   <div
                     key={item.id}
                     className={cn(
-                      "group relative overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md",
+                      "group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md",
                       on && "border-[#d7141f] ring-2 ring-[#d7141f]",
                     )}
                   >
@@ -257,6 +388,7 @@ export default function WholesaleProductView({
                       type="button"
                       onClick={() => openItem(item)}
                       className="block w-full text-left"
+                      title="View larger"
                     >
                       <div className="relative aspect-square bg-muted">
                         <Image
@@ -266,49 +398,87 @@ export default function WholesaleProductView({
                           sizes="(min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
+                        {on && (
+                          <span className="absolute right-2 top-2 flex h-7 min-w-7 items-center justify-center gap-0.5 rounded-full bg-[#d7141f] px-1.5 text-xs font-bold text-white shadow">
+                            <Check className="size-3.5" strokeWidth={3} />
+                            {colored && picks.length}
+                          </span>
+                        )}
                       </div>
-                      <div className="space-y-1 px-3 py-2 text-center">
+                      <div className="px-3 pt-2 text-center">
                         <p className="line-clamp-1 text-sm font-semibold" title={item.name}>
                           {item.name}
                         </p>
                         <p className="truncate font-mono text-xs font-bold tracking-wide text-muted-foreground">
                           {item.code}
                         </p>
-                        {colored && (
-                          <p className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
-                            {item.colors.slice(0, MAX_DOTS).map((c) => (
-                              <ColorDot key={c} name={c} />
-                            ))}
-                            <span className="truncate">
-                              {item.colors.length} {item.colors.length === 1 ? "colour" : "colours"}
-                            </span>
-                          </p>
-                        )}
                       </div>
                     </button>
-                    {/* Add: simple products toggle here; coloured ones open to pick a colour */}
-                    <button
-                      type="button"
-                      onClick={() => (colored ? openItem(item) : togglePick(item))}
-                      aria-pressed={on}
-                      aria-label={
-                        colored
-                          ? `Choose colours of ${item.code}`
-                          : on
-                            ? `Remove ${item.code} from request`
-                            : `Add ${item.code} to request`
-                      }
-                      title={colored ? "Choose colour" : on ? "Remove from request" : "Add to request"}
-                      className={cn(
-                        "absolute right-2 top-2 flex h-8 min-w-8 items-center justify-center gap-1 rounded-full border-2 px-1.5 text-xs font-bold shadow transition-colors",
-                        on
-                          ? "border-[#d7141f] bg-[#d7141f] text-white"
-                          : "border-white bg-black/40 text-white hover:bg-black/70",
+
+                    <div className="flex flex-1 flex-col gap-2 p-2.5 pt-2">
+                      {colored && (
+                        <div className="flex flex-wrap justify-center gap-1">
+                          {item.colors.slice(0, MAX_CHIPS).map((c) => {
+                            const active = draft.includes(c);
+                            return (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => toggleDraft(item, c)}
+                                aria-pressed={active}
+                                title={c}
+                                className={cn(
+                                  "inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
+                                  active
+                                    ? "border-[#d7141f] bg-[#d7141f] text-white"
+                                    : "hover:border-[#d7141f] hover:text-[#d7141f]",
+                                )}
+                              >
+                                {active ? (
+                                  <Check className="size-3 shrink-0" strokeWidth={3} />
+                                ) : (
+                                  <ColorDot name={c} className="size-2.5" />
+                                )}
+                                <span className="truncate">{c}</span>
+                              </button>
+                            );
+                          })}
+                          {extra > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => openItem(item)}
+                              className="rounded-full border border-dashed px-2 py-0.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                            >
+                              +{extra} more
+                            </button>
+                          )}
+                        </div>
                       )}
-                    >
-                      {on ? <Check className="size-4" strokeWidth={3} /> : <Plus className="size-4" strokeWidth={3} />}
-                      {colored && picks.length > 0 && <span>{picks.length}</span>}
-                    </button>
+
+                      <button
+                        type="button"
+                        onClick={() => commitCard(item)}
+                        aria-disabled={needsColour}
+                        className={cn(
+                          "mt-auto inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wide transition-colors",
+                          needsColour
+                            ? "cursor-not-allowed bg-muted text-muted-foreground"
+                            : tone === "done"
+                              ? "border-2 border-[#d7141f] text-[#d7141f] hover:bg-[#d7141f]/10"
+                              : "bg-[#d7141f] text-white hover:bg-[#b5121c]",
+                        )}
+                        title={!colored && on ? "Click to remove" : undefined}
+                      >
+                        {needsColour ? (
+                          "Choose a colour"
+                        ) : (
+                          <>
+                            {tone === "done" ? <Check className="size-3.5" strokeWidth={3} /> : <Plus className="size-3.5" strokeWidth={3} />}
+                            {label}
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -376,12 +546,12 @@ export default function WholesaleProductView({
                     sizes="(min-width: 640px) 460px, 100vw"
                     className="object-contain p-4 animate-in fade-in duration-300"
                   />
-                  {siblings.length > 1 && (
+                  {photos.length > 1 && (
                     <>
                       <button
                         type="button"
                         onClick={() => step(-1)}
-                        aria-label="Previous product"
+                        aria-label="Previous photo"
                         className="absolute left-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow transition hover:scale-105"
                       >
                         <ChevronLeft className="size-5" />
@@ -389,21 +559,21 @@ export default function WholesaleProductView({
                       <button
                         type="button"
                         onClick={() => step(1)}
-                        aria-label="Next product"
+                        aria-label="Next photo"
                         className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow transition hover:scale-105"
                       >
                         <ChevronRight className="size-5" />
                       </button>
                       <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white">
-                        {selectedIndex + 1} / {siblings.length}
+                        {Math.max(photoIndex, 0) + 1} / {photos.length}
                       </span>
                     </>
                   )}
                 </div>
-                {selected.images?.length > 1 && (
+                {photos.length > 1 && (
                   <div className="flex shrink-0 gap-2 overflow-x-auto px-3 pb-3">
-                    {selected.images.map((src) => {
-                      const active = (viewImage ?? pickImage(selected, viewColor)) === src;
+                    {photos.map((src) => {
+                      const active = shownPhoto === src;
                       return (
                         <button
                           key={src}

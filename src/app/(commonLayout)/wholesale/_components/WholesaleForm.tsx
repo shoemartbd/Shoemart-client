@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Image from "next/image";
-import { CheckCircle2, Images, Loader2, Send, X } from "lucide-react";
+import { CheckCircle2, Images, Loader2, Send, UserCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { createWholesaleRequest } from "@/services/wholesaleRequest.services";
+import {
+  createWholesaleRequest,
+  getMyWholesaleRequests,
+} from "@/services/wholesaleRequest.services";
+import { getUserInfo } from "@/services/auth.services";
 import ColorDot from "@/components/shared/ColorDot";
 import {
   DEFAULT_PAIRS,
@@ -66,6 +71,52 @@ export default function WholesaleForm({
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+
+  // Logged in: fill in what we know (name, email; for a wholesaler also the
+  // phone, business and location of their last request). Every field stays
+  // editable, and "Clear" empties them to enter other details.
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => getUserInfo(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const isWholesaler = me?.role === "WHOLESALER";
+  const { data: myRequests } = useQuery({
+    queryKey: ["my-wholesale-orders"],
+    queryFn: () => getMyWholesaleRequests(),
+    enabled: isWholesaler,
+    staleTime: 5 * 60 * 1000,
+  });
+  const last = myRequests?.[0];
+  const profile: typeof EMPTY | null = me
+    ? {
+        ...EMPTY,
+        name: last?.name || me.name || "",
+        email: me.email || last?.email || "",
+        phone: last?.phone ?? "",
+        businessName: last?.businessName ?? "",
+        location: last?.location ?? "",
+        businessType: "",
+      }
+    : null;
+  const [prefilled, setPrefilled] = useState(false);
+  const filledFor = useRef<string | null>(null);
+  // Fill once per account (and again when the wholesaler's last request
+  // arrives), only into fields the buyer hasn't typed in
+  const profileKey = profile ? `${me?.id}:${last?.id ?? ""}` : null;
+  useEffect(() => {
+    if (!profile || !profileKey || filledFor.current === profileKey) return;
+    filledFor.current = profileKey;
+    setValues((v) => {
+      const next = { ...v };
+      (Object.keys(profile) as Field[]).forEach((k) => {
+        if (!next[k] && profile[k]) next[k] = profile[k];
+      });
+      return next;
+    });
+    setPrefilled(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileKey]);
 
   const set = (field: Field) => (value: string) => {
     setValues((v) => ({ ...v, [field]: value }));
@@ -129,7 +180,7 @@ export default function WholesaleForm({
         })),
       });
       setSent(true);
-      setValues(EMPTY);
+      setValues(profile ?? EMPTY);
       onProductsChange([]);
       setPicked([]);
     } catch (error) {
@@ -159,6 +210,25 @@ export default function WholesaleForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {prefilled && me && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm">
+          <UserCheck className="size-4 shrink-0 text-emerald-600" />
+          <span className="flex-1">
+            Filled from your account <b>{me.name}</b>. You can change any field.
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setValues(EMPTY);
+              setErrors({});
+              setPrefilled(false);
+            }}
+            className="text-xs font-semibold text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Clear &amp; enter other details
+          </button>
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="ws-name">Your Name *</Label>

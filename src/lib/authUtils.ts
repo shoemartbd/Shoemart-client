@@ -1,4 +1,10 @@
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
+// WHOLESALER is a customer who also sees their wholesale orders: it uses the
+// customer dashboard (/dashboard) like USER.
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER" | "WHOLESALER";
+
+// The route owner a role maps to (SUPER_ADMIN -> ADMIN, WHOLESALER -> USER)
+export const routeRoleOf = (role: UserRole | null) =>
+  role === "SUPER_ADMIN" ? "ADMIN" : role === "WHOLESALER" ? "USER" : role;
 
 export const authRoutes = [
   "/login",
@@ -67,7 +73,7 @@ export const getDefaultDashboardRoute = (role: UserRole) => {
     return "/admin/dashboard";
   }
 
-  if (role === "USER") {
+  if (role === "USER" || role === "WHOLESALER") {
     return "/dashboard";
   }
 
@@ -79,7 +85,7 @@ export const getProfileRoute = (role: UserRole) => {
     return "/admin/dashboard/my-profile";
   }
 
-  if (role === "USER") {
+  if (role === "USER" || role === "WHOLESALER") {
     return "/dashboard/my-profile";
   }
 
@@ -90,9 +96,7 @@ export const isValidRedirectForRole = (
   redirectPath: string,
   role: UserRole,
 ) => {
-  const unifySuperAdminAndAdminRole = role === "SUPER_ADMIN" ? "ADMIN" : role;
-
-  role = unifySuperAdminAndAdminRole;
+  const routeRole = routeRoleOf(role);
 
   const routeOwner = getRouteOwner(redirectPath);
 
@@ -100,7 +104,7 @@ export const isValidRedirectForRole = (
     return true;
   }
 
-  if (routeOwner === role) {
+  if (routeOwner === routeRole) {
     return true;
   }
 

@@ -3,6 +3,7 @@ import {
   getDefaultDashboardRoute,
   getRouteOwner,
   isAuthRoute,
+  routeRoleOf,
   UserRole,
 } from "./lib/authUtils";
 import { isTokenExpiringSoon } from "./lib/tokenUtils";
@@ -55,10 +56,8 @@ export async function proxy(request: NextRequest) {
 
     const routerOwner = getRouteOwner(pathname);
 
-    const unifySuperAdminAndAdminRole =
-      userRole === "SUPER_ADMIN" ? "ADMIN" : userRole;
-
-    userRole = unifySuperAdminAndAdminRole as UserRole;
+    // SUPER_ADMIN shares the admin routes, WHOLESALER the customer ones
+    userRole = routeRoleOf(userRole) as UserRole;
 
     const isAuth = isAuthRoute(pathname);
 

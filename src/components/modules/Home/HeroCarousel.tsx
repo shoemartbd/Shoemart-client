@@ -25,10 +25,10 @@ function MaybeLink({
   );
 }
 
-// Full-width banner, 1920 x 800 on desktop: the height follows that 2.4:1
-// ratio as the screen narrows and stops at 800px on wider screens (where the
-// image fills the extra width and trims a little top and bottom).
-const HERO_SIZE = "w-full aspect-2/1 md:aspect-auto md:h-[min(calc(100vw/2.4),800px)]";
+// Full-width banner that always keeps the upload ratio (1920 x 800, 2.4:1) on
+// phones, tablets and desktops, so a slide made at that size is never cropped:
+// it just scales (about 156px tall on a phone, 800px on a 1920px screen).
+const HERO_SIZE = "w-full aspect-[12/5]";
 
 export default function HeroCarousel() {
   const [slides, setSlides] = useState<any[]>([]);
@@ -47,7 +47,8 @@ export default function HeroCarousel() {
       try {
         const data: any[] = (await getHeroSliders()) || [];
         const active = data.filter((s) => s.isActive !== false);
-        setSlides(active.filter((s) => s.type !== "BANNER"));
+        // Only main-carousel slides (not side or wholesale-page banners)
+        setSlides(active.filter((s) => (s.type ?? "SLIDE") === "SLIDE"));
       } catch (error) {
         console.error("Failed to load hero sliders:", error);
       } finally {

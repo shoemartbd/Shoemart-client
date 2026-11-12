@@ -22,6 +22,25 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
   ];
 };
 
+// Extra menu for wholesaler accounts (on top of the customer menu)
+export const wholesalerNavItems: NavSection[] = [
+  {
+    title: "Wholesale",
+    items: [
+      {
+        title: "My Wholesale Orders",
+        href: "/dashboard/my-wholesale-orders",
+        icon: "Boxes",
+      },
+      {
+        title: "New Wholesale Request",
+        href: "/wholesale",
+        icon: "Send",
+      },
+    ],
+  },
+];
+
 export const userNavItems: NavSection[] = [
   {
     title: "Shopping",
@@ -207,7 +226,7 @@ export const adminNavItems: NavSection[] = [
         icon: "PictureInPicture2",
       },
       {
-        title: "Sample Works",
+        title: "Company Profile",
         href: "/admin/dashboard/sample-works",
         icon: "FileDown",
       },
@@ -389,6 +408,9 @@ export const getNavItemsByRole = (
 
     case "USER":
       return [...commonNavItems, ...userNavItems];
+
+    case "WHOLESALER":
+      return [...commonNavItems, ...wholesalerNavItems, ...userNavItems];
 
     default:
       return commonNavItems;

@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
 import { createHeroSlider } from "@/services/heroSlider.services";
 
-export type SliderType = "SLIDE" | "BANNER";
+export type SliderType = "SLIDE" | "BANNER" | "WHOLESALE";
 
 // Upload caps; the server action body limit in next.config.ts must stay above these
 const MAX_IMAGE_MB = 10;
@@ -26,12 +26,17 @@ const COPY: Record<SliderType, { button: string; title: string; hint: string }> 
   SLIDE: {
     button: "Add Slide",
     title: "Upload New Slide",
-    hint: "Image or video. Rotates in the main slider. Use 1920 × 800 px. The banner runs edge to edge, so on wide screens a little of the top and bottom is trimmed: keep text and faces in the middle. Videos play muted and move on when they end; keep them short (under 30s) and small (MP4).",
+    hint: "Image or video. Rotates in the main slider. Use exactly 1920 × 800 px (2.4:1): the slide keeps this shape on phones and desktops, so nothing is cut off, it only gets smaller on phones (keep text large and bold). Videos play muted and move on when they end; keep them short (under 30s) and small (MP4).",
   },
   BANNER: {
     button: "Add Banner",
     title: "Upload Offer Banner",
     hint: "Fixed beside the slider (max 2). Use 800 × 400 px (ratio 2:1). Keep text and faces away from the edges.",
+  },
+  WHOLESALE: {
+    button: "Add Wholesale Banner",
+    title: "Upload Wholesale Page Banner",
+    hint: "Image only. Shown in the hero of the /wholesale page (max 5; several rotate). Use a square photo, 1000 × 1000 px.",
   },
 };
 
@@ -58,8 +63,8 @@ export default function CreateSliderModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (type === "BANNER" && selectedFile.type.startsWith("video/")) {
-        toast.error("Offer banners must be images");
+      if (type !== "SLIDE" && selectedFile.type.startsWith("video/")) {
+        toast.error("Banners must be images");
         e.target.value = "";
         return;
       }
@@ -92,7 +97,7 @@ export default function CreateSliderModal({
       if (link.trim()) formData.append("link", link.trim());
 
       await createHeroSlider(formData);
-      toast.success(`${type === "BANNER" ? "Banner" : "Slide"} added successfully`);
+      toast.success(`${type === "SLIDE" ? "Slide" : "Banner"} added successfully`);
       setIsOpen(false);
       setFile(null);
       setPreview(null);

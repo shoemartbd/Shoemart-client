@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Plus, Upload, X } from "lucide-react";
+import { Check, ImagePlus, Loader2, Plus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
 import ColorDot from "@/components/shared/ColorDot";
 import { cn } from "@/lib/utils";
 import { getCategoryOptions } from "@/services/category.services";
+import { getAllAttributes } from "@/services/attribute.services";
 import {
   createWholesaleProduct,
   IWholesaleProduct,
@@ -35,6 +36,7 @@ import { ICategory } from "@/types/category.types";
 const MAX_IMAGES = 8;
 const MAX_FILE = 5 * 1024 * 1024;
 const NO_SUB = "__none";
+// Offered when the store has no "Color" attribute yet
 const COMMON_COLOURS = ["Black", "White", "Brown", "Tan", "Navy", "Grey", "Red", "Blue", "Maroon", "Beige"];
 
 // A photo already saved (url) or a new file (with a blob preview)
@@ -101,6 +103,36 @@ export default function WholesaleProductFormDialog({
   const allCategories: ICategory[] = useMemo(() => categoryRes?.data ?? [], [categoryRes]);
   const mainCategories = allCategories.filter((c) => !c.parentId);
   const subCategories = allCategories.filter((c) => c.parentId && c.parentId === mainId);
+
+  // The store's colours (Dashboard -> Attributes -> Color), ticked to add/remove
+  const { data: attrRes } = useQuery({
+    queryKey: ["attributes"],
+    queryFn: () => getAllAttributes(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const storeColours = useMemo(() => {
+    const attrs = (attrRes?.data ?? []) as { name: string; values?: { value: string }[] }[];
+    const list = attrs.find((a) => /colou?r/i.test(a.name))?.values?.map((v) => v.value.trim()) ?? [];
+    return list.filter(Boolean).length > 0 ? list.filter(Boolean) : COMMON_COLOURS;
+  }, [attrRes]);
+  const hasColour = (name: string) =>
+    colours.some((c) => c.name.trim().toLowerCase() === name.toLowerCase());
+  const toggleStoreColour = (name: string) =>
+    hasColour(name)
+      ? setColours((list) => list.filter((c) => c.name.trim().toLowerCase() !== name.toLowerCase()))
+      : setColours((list) => [...list, { key: nextKey(), name, image: null }]);
+  const allTicked = storeColours.every(hasColour);
+  const toggleAllStoreColours = () =>
+    allTicked
+      ? setColours((list) =>
+          list.filter((c) => !storeColours.some((s) => s.toLowerCase() === c.name.trim().toLowerCase())),
+        )
+      : setColours((list) => [
+          ...list,
+          ...storeColours
+            .filter((s) => !list.some((c) => c.name.trim().toLowerCase() === s.toLowerCase()))
+            .map((name) => ({ key: nextKey(), name, image: null })),
+        ]);
 
   const addPhotos = (files: FileList | null) => {
     const picked = [...(files ?? [])].filter(checkImage);
@@ -304,7 +336,7 @@ export default function WholesaleProductFormDialog({
           {/* Colours */}
           <div className="space-y-2">
             <Label>
-              Colours <span className="font-normal text-muted-foreground">(optional; buyers pick from these. Add a photo per colour if you have one)</span>
+              Colours <span className="font-normal text-muted-foreground">(tick every colour this shoe comes in; buyers pick from these. Type a new one below if it isn&apos;t listed, and add a photo per colour if you have one)</span>
             </Label>
             <div className="flex gap-2">
               <Input
@@ -324,18 +356,34 @@ export default function WholesaleProductFormDialog({
               </Button>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {COMMON_COLOURS.filter(
-                (c) => !colours.some((x) => x.name.toLowerCase() === c.toLowerCase()),
-              ).map((c) => (
+              {storeColours.map((c) => {
+                const on = hasColour(c);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleStoreColour(c)}
+                    aria-pressed={on}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "hover:border-primary hover:text-primary",
+                    )}
+                  >
+                    {on ? <Check className="size-3" strokeWidth={3} /> : <ColorDot name={c} />} {c}
+                  </button>
+                );
+              })}
+              {storeColours.length > 1 && (
                 <button
-                  key={c}
                   type="button"
-                  onClick={() => addColour(c)}
-                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs hover:border-primary hover:text-primary"
+                  onClick={toggleAllStoreColours}
+                  className="rounded-full border border-dashed px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5"
                 >
-                  <ColorDot name={c} /> {c}
+                  {allTicked ? "Clear all" : "Select all"}
                 </button>
-              ))}
+              )}
             </div>
 
             {colours.length > 0 && (

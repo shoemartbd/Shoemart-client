@@ -41,7 +41,8 @@ export default function HeroSlidersPage() {
     }
   };
 
-  const slides = sliders.filter((s) => s.type !== "BANNER");
+  const slides = sliders.filter((s) => (s.type ?? "SLIDE") === "SLIDE");
+  const wholesale = sliders.filter((s) => s.type === "WHOLESALE");
 
   const renderGrid = (items: any[], type: SliderType) =>
     items.length === 0 ? (
@@ -49,7 +50,9 @@ export default function HeroSlidersPage() {
         <p className="text-muted-foreground text-sm">
           {type === "BANNER"
             ? "No banners yet. The slider will take the full width."
-            : "No slides yet. Add one to get started."}
+            : type === "WHOLESALE"
+              ? "No wholesale banner yet. The wholesale page shows its default photo."
+              : "No slides yet. Add one to get started."}
         </p>
       </div>
     ) : (
@@ -57,7 +60,9 @@ export default function HeroSlidersPage() {
         className={`grid gap-6 ${
           type === "BANNER"
             ? "grid-cols-1 sm:grid-cols-2"
-            : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+            : type === "WHOLESALE"
+              ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+              : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
         }`}
       >
         {items.map((slider) => (
@@ -70,13 +75,15 @@ export default function HeroSlidersPage() {
                   muted
                   playsInline
                   preload="metadata"
-                  className="w-full aspect-2/1 object-cover bg-black"
+                  className="w-full aspect-[12/5] object-cover bg-black"
                 />
               ) : (
                 <img
                   src={slider.image}
-                  alt={type === "BANNER" ? "Banner" : "Slide"}
-                  className="w-full aspect-2/1 object-cover transition-transform group-hover:scale-105"
+                  alt={type === "SLIDE" ? "Slide" : "Banner"}
+                  className={`w-full object-cover transition-transform group-hover:scale-105 ${
+                    type === "WHOLESALE" ? "aspect-square" : type === "SLIDE" ? "aspect-[12/5]" : "aspect-2/1"
+                  }`}
                 />
               )}
               {slider.mediaType === "VIDEO" && (
@@ -129,12 +136,36 @@ export default function HeroSlidersPage() {
                   Images or videos. Rotate automatically across the full width.
                 </p>
                 <p className="text-sm font-medium text-primary">
-                  Size: 1920 × 800 px · keep text in the middle
+                  Size: 1920 × 800 px (2.4:1) · shown whole on mobile and desktop, never cropped · use large, bold text so it reads on phones
                 </p>
               </div>
               <CreateSliderModal type="SLIDE" onSuccess={fetchSliders} />
             </div>
             {renderGrid(slides, "SLIDE")}
+          </section>
+
+          <section className="space-y-4 border-t pt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h4 className="text-lg font-semibold">Wholesale Page Banner</h4>
+                <p className="text-sm text-muted-foreground">
+                  The photo in the hero of the{" "}
+                  <a href="/wholesale" target="_blank" className="text-primary hover:underline">
+                    wholesale page
+                  </a>
+                  . Add up to 5; more than one fade in turn.
+                </p>
+                <p className="text-sm font-medium text-primary">
+                  Size: 1000 × 1000 px (square) · image only
+                </p>
+              </div>
+              <CreateSliderModal
+                type="WHOLESALE"
+                onSuccess={fetchSliders}
+                disabled={wholesale.length >= 5}
+              />
+            </div>
+            {renderGrid(wholesale, "WHOLESALE")}
           </section>
 
         </>

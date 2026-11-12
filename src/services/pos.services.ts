@@ -24,7 +24,7 @@ export async function getPosProducts(query: string = "") {
     const headers = await getAuthHeaders();
     if (!headers) return { success: false, message: "Unauthorized" };
 
-    const url = `${BASE_API_URL}/pos/products?limit=50${query ? `&searchTerm=${query}` : ""}`;
+    const url = `${BASE_API_URL}/pos/products?limit=50${query ? `&searchTerm=${encodeURIComponent(query)}` : ""}`;
     const res = await fetch(url, {
       method: "GET",
       headers,

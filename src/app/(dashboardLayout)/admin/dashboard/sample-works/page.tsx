@@ -43,7 +43,7 @@ export default function SampleWorksPage() {
     if (!ok) return;
     try {
       await deleteSampleWork(item.id);
-      toast.success("Sample work deleted");
+      toast.success("Company profile deleted");
       refresh();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete");
@@ -54,9 +54,10 @@ export default function SampleWorksPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-2xl font-bold">Sample Works</h3>
+          <h3 className="text-2xl font-bold">Company Profile</h3>
           <p className="text-muted-foreground">
-            PDFs shown on the homepage. Customers can view them or download a copy.
+            The company profile PDF. The first visible one opens from the &quot;Company
+            Profile&quot; link in the website footer.
           </p>
         </div>
         <Button className="rounded-full" onClick={() => openForm(null)}>
@@ -72,9 +73,9 @@ export default function SampleWorksPage() {
       ) : items.length === 0 ? (
         <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-center">
           <FileText className="size-10 text-muted-foreground/50" />
-          <p className="font-semibold">No sample works yet</p>
+          <p className="font-semibold">No company profile yet</p>
           <p className="text-sm text-muted-foreground">
-            Upload a PDF and it appears on the homepage.
+            Upload the PDF and a &quot;Company Profile&quot; link appears in the footer.
           </p>
         </div>
       ) : (

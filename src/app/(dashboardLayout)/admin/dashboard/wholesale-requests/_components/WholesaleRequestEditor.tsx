@@ -20,11 +20,19 @@ import {
 import {
   IWholesaleRequest,
   IWholesaleRequestProduct,
+  getWholesalers,
   searchWholesaleProducts,
   updateWholesaleRequest,
   WholesaleRequestStatus,
 } from "@/services/wholesaleRequest.services";
 import { getSiteSettings } from "@/services/siteSetting.services";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { printWholesaleInvoice, wholesaleInvoiceNo } from "@/lib/printWholesaleInvoice";
 import { cn } from "@/lib/utils";
 import { StatusSelect, statusOf, whatsappHref } from "./wholesaleStatus";
@@ -92,6 +100,16 @@ export default function WholesaleRequestEditor({
   const [deliveryCharge, setDeliveryCharge] = useState(request.deliveryCharge ?? 0);
   const [paidAmount, setPaidAmount] = useState(request.paidAmount ?? 0);
   const [note, setNote] = useState(request.adminNote ?? "");
+  // Wholesaler account that sees this request in their dashboard
+  const [accountId, setAccountId] = useState(request.userId ?? "");
+  const { data: wholesalers = [] } = useQuery({
+    queryKey: ["wholesalers"],
+    queryFn: () => getWholesalers(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const emailMatch = request.email
+    ? wholesalers.find((w) => w.email.toLowerCase() === request.email!.toLowerCase())
+    : undefined;
   const [status, setStatus] = useState<WholesaleRequestStatus>(request.status);
   const [saving, setSaving] = useState<"save" | "complete" | null>(null);
   const [search, setSearch] = useState("");
@@ -202,6 +220,7 @@ export default function WholesaleRequestEditor({
       const updated = await updateWholesaleRequest(request.id, {
         status: nextStatus,
         adminNote: note,
+        userId: accountId || null,
         items: lines.map((l) => ({
           productId: l.productId,
           ...(l.color?.trim() && { color: l.color.trim() }),
@@ -293,6 +312,41 @@ export default function WholesaleRequestEditor({
               <dd className="whitespace-pre-wrap rounded-lg bg-muted/50 p-2.5">{request.message}</dd>
             </div>
           )}
+          <div className="col-span-2 flex flex-col gap-2 border-t pt-3 sm:col-span-4 sm:flex-row sm:items-center">
+            <dt className="shrink-0 text-xs text-muted-foreground">
+              Wholesaler account
+              <span className="block text-[11px]">They see this order and its invoice in their dashboard</span>
+            </dt>
+            <dd className="flex flex-1 flex-wrap items-center gap-2">
+              <Select value={accountId || "__none"} onValueChange={(v) => setAccountId(v === "__none" ? "" : v)}>
+                <SelectTrigger className="w-full sm:w-72">
+                  <SelectValue placeholder="Not linked" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Not linked</SelectItem>
+                  {wholesalers.map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.name} ({w.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!accountId && emailMatch && (
+                <button
+                  type="button"
+                  onClick={() => setAccountId(emailMatch.id)}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Link to {emailMatch.name} (same email)
+                </button>
+              )}
+              {wholesalers.length === 0 && (
+                <span className="text-xs text-muted-foreground">
+                  No wholesaler accounts yet. Make one from Users → Make Wholesaler.
+                </span>
+              )}
+            </dd>
+          </div>
         </dl>
 
         {/* Order lines */}

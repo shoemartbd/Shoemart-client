@@ -88,10 +88,10 @@ export default function SampleWorkFormDialog({
 
       if (sampleWork) {
         await updateSampleWork(sampleWork.id, payload);
-        toast.success("Sample work updated");
+        toast.success("Company profile updated");
       } else {
         await createSampleWork({ ...payload, fileUrl: upload!.fileUrl });
-        toast.success("Sample work added");
+        toast.success("Company profile added");
       }
       onOpenChange(false);
       onSuccess();
@@ -107,10 +107,10 @@ export default function SampleWorkFormDialog({
     <Dialog open={open} onOpenChange={(next) => !isSaving && onOpenChange(next)}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Sample Work" : "Add Sample Work"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Company Profile" : "Add Company Profile"}</DialogTitle>
           <DialogDescription>
-            Upload a PDF (catalogue, portfolio, price list). Customers can view
-            and download it from the homepage.
+            Upload the company profile PDF. Customers open it from the
+            &quot;Company Profile&quot; link in the website footer.
           </DialogDescription>
         </DialogHeader>
 
@@ -181,7 +181,7 @@ export default function SampleWorkFormDialog({
 
           <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
             <Checkbox checked={isActive} onCheckedChange={(v) => setIsActive(v === true)} />
-            Show on homepage
+            Show in the footer
           </label>
 
           <Button className="w-full" onClick={handleSave} disabled={isSaving}>

@@ -158,15 +158,15 @@ function PromoForm({ promo }: { promo: IHomePromo }) {
           </label>
         </div>
         <div className="grid gap-4 md:grid-cols-[1fr_1.25fr_1fr]">
-          <MediaField id="showcase-left" label="Left Photo" hint="Portrait, e.g. 800 × 1150 px" state={showLeft} />
+          <MediaField id="showcase-left" label="Left Photo" hint="800 × 1000 px (4:5 portrait)" state={showLeft} />
           <MediaField
             id="showcase-video"
             label="Middle Video"
-            hint="MP4, under 30 MB, e.g. 1080 × 1260 px. Plays muted on a loop."
+            hint="1080 × 1080 px (square) MP4, under 30 MB. Plays muted on a loop."
             state={showVideo}
             video
           />
-          <MediaField id="showcase-right" label="Right Photo" hint="Portrait, e.g. 800 × 1150 px" state={showRight} />
+          <MediaField id="showcase-right" label="Right Photo" hint="800 × 1000 px (4:5 portrait)" state={showRight} />
         </div>
       </div>
 
@@ -393,7 +393,7 @@ function MediaField({
       <Label>{label}</Label>
       <p className="text-xs text-muted-foreground">{hint}</p>
       {state.preview ? (
-        <div className="relative aspect-[4/5] overflow-hidden rounded-xl border bg-black">
+        <div className={`relative overflow-hidden rounded-xl border bg-black ${video ? "aspect-square" : "aspect-[4/5]"}`}>
           {video ? (
             <video src={state.preview} muted loop autoPlay playsInline className="h-full w-full object-cover" />
           ) : (
@@ -418,7 +418,7 @@ function MediaField({
           </div>
         </div>
       ) : (
-        <label className="upload-zone flex aspect-[4/5] w-full cursor-pointer flex-col items-center justify-center rounded-xl">
+        <label className={`upload-zone flex w-full cursor-pointer flex-col items-center justify-center rounded-xl ${video ? "aspect-square" : "aspect-[4/5]"}`}>
           <span className="upload-icon mb-1">
             <Upload className="size-5" />
           </span>

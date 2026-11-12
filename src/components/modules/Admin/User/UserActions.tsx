@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IUser } from "@/types/user.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Shield, UserCog, UserMinus, UserPlus } from "lucide-react";
+import { Boxes, MoreHorizontal, Shield, UserCog, UserMinus, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 const UserActions = ({ user }: { user: IUser }) => {
@@ -66,6 +66,12 @@ const UserActions = ({ user }: { user: IUser }) => {
           <DropdownMenuItem onClick={() => changeRole("ADMIN")} disabled={isRolePending}>
             <Shield className="mr-2 h-4 w-4" />
             Make Admin
+          </DropdownMenuItem>
+        )}
+        {user.role !== "WHOLESALER" && (
+          <DropdownMenuItem onClick={() => changeRole("WHOLESALER")} disabled={isRolePending}>
+            <Boxes className="mr-2 h-4 w-4" />
+            Make Wholesaler
           </DropdownMenuItem>
         )}
         {user.role !== "USER" && (

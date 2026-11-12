@@ -46,6 +46,9 @@ export interface IWholesaleRequest {
   status: WholesaleRequestStatus;
   completedAt: string | null;
   adminNote: string | null;
+  // Wholesaler account it is linked to (sees it in their dashboard)
+  userId: string | null;
+  user?: IWholesalerAccount | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -74,6 +77,40 @@ export interface IUpdateWholesaleRequest {
   }[];
   deliveryCharge?: number;
   paidAmount?: number;
+  userId?: string | null;
+}
+
+export interface IWholesalerAccount {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// What a wholesaler sees of their own request (no cost / profit / admin note)
+export interface IMyWholesaleRequest {
+  id: string;
+  invoiceNo: number;
+  name: string;
+  phone: string;
+  email: string | null;
+  businessName: string | null;
+  location: string | null;
+  status: WholesaleRequestStatus;
+  message: string | null;
+  products: {
+    productId: string;
+    code: string;
+    name: string;
+    image: string | null;
+    color: string | null;
+    quantity: number;
+    unitPrice: number;
+  }[];
+  deliveryCharge: number;
+  paidAmount: number;
+  totals: { pairs: number; subtotal: number; total: number; due: number };
+  completedAt: string | null;
+  createdAt: string;
 }
 
 // "Add product" search result in the admin editor (Wholesale Products)
@@ -183,5 +220,23 @@ export const getWholesaleReport = async (params: { startDate?: string; endDate?:
     return (await httpClient.get<IWholesaleReport>("/wholesale-requests/report", { params })).data;
   } catch (error) {
     return fail(error, "Failed to load wholesale report");
+  }
+};
+
+// Admin: wholesaler accounts, for linking a request
+export const getWholesalers = async () => {
+  try {
+    return (await httpClient.get<IWholesalerAccount[]>("/wholesale-requests/wholesalers")).data ?? [];
+  } catch (error) {
+    return fail(error, "Failed to load wholesalers");
+  }
+};
+
+// Wholesaler dashboard: my own wholesale requests
+export const getMyWholesaleRequests = async () => {
+  try {
+    return (await httpClient.get<IMyWholesaleRequest[]>("/wholesale-requests/my")).data ?? [];
+  } catch (error) {
+    return fail(error, "Failed to load your wholesale orders");
   }
 };
