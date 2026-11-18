@@ -49,6 +49,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { DHAKA_DISTRICTS, BANGLADESH_DISTRICTS } from "@/lib/districts";
 import { BD_MOBILE_MESSAGE, getPhoneHint, isValidBdPhone, sanitizePhoneInput } from "@/lib/phone";
+import PhoneOtpVerifier, {
+  forgetPhoneOtp,
+  usePhoneOtpRequired,
+} from "@/components/shared/PhoneOtpVerifier";
 import { buildGtmUserData, cartItemsToGtmItems, pushEcommerceEvent } from "@/lib/gtm";
 
 interface AppliedCoupon {
@@ -102,6 +106,13 @@ function CheckoutContent() {
   // read them, in addition to what FormData already gives us on submit
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  // Guests confirm the number by SMS code when phone OTP is on
+  const otpOn = usePhoneOtpRequired();
+  // The server is the judge: if it asks for verification, show the code box
+  const [otpForced, setOtpForced] = useState(false);
+  const otpRequired = otpOn || otpForced;
+  const [phoneToken, setPhoneToken] = useState<string | null>(null);
+  const [otpReset, setOtpReset] = useState(0);
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
@@ -333,6 +344,13 @@ function CheckoutContent() {
       return;
     }
 
+    if (otpRequired && !phoneToken) {
+      toast.error("Please verify your phone number with the SMS code first");
+      document.getElementById("phone")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (phoneToken) payload.phoneVerificationToken = phoneToken;
+
     // Always pass items to createOrder (this deletes them from cart if they exist)
     payload.items = checkoutItems.map((item) => ({
       productId: item.id,
@@ -362,6 +380,14 @@ function CheckoutContent() {
       if (!res.success) {
         toast.error(res.message || "Failed to place order");
         setIsLoading(false);
+        // Token no longer accepted (expired / OTP just turned on): verify again
+        if (/verify your phone/i.test(res.message || "")) {
+          forgetPhoneOtp(phone);
+          setPhoneToken(null);
+          setOtpForced(true);
+          setOtpReset((n) => n + 1);
+          document.getElementById("phone")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         // Guest checkout is off: log in, then come back to this checkout
         if (res.code === "LOGIN_REQUIRED") {
           const query = searchParams.toString();
@@ -487,6 +513,9 @@ function CheckoutContent() {
                     <p className="text-xs font-medium text-destructive">
                       {getPhoneHint(phone)}
                     </p>
+                  )}
+                  {otpRequired && (
+                    <PhoneOtpVerifier key={otpReset} phone={phone} onTokenChange={setPhoneToken} />
                   )}
                 </div>
               </div>

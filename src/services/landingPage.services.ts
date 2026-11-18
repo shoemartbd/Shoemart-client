@@ -83,6 +83,7 @@ export const placeLandingPageOrder = async (
     checkoutSessionToken?: string;
     notes?: string;
     paymentMethod?: "COD" | "BKASH";
+    phoneVerificationToken?: string | null;
   },
 ) => {
   try {

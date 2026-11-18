@@ -28,6 +28,7 @@ export async function createOrder(payload: {
   notes?: string;
   items?: { productId: string; quantity: number }[];
   checkoutSessionToken?: string;
+  phoneVerificationToken?: string | null;
 }) {
   try {
     // Not logged in: place it as a guest order (allowed while guest checkout

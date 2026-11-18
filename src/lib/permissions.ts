@@ -65,6 +65,7 @@ const PAGE_RULES: [string, PageRule][] = [
   ["/admin/dashboard/sales-report", "report.view"],
   ["/admin/dashboard/profit-loss-report", "report.view"],
   ["/admin/dashboard/wholesale-report", "report.view"],
+  ["/admin/dashboard/wholesaler-report", "report.view"],
   ["/admin/dashboard/analytics", "report.view"],
   ["/admin/dashboard/district-report", "report.view"],
   ["/admin/dashboard/customer-segment-report", "report.view"],

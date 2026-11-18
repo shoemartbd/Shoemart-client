@@ -49,6 +49,10 @@ import {
 import { LandingPageSectionKey, resolveSectionOrder } from "@/lib/landingPageSections";
 import PriceHighlight from "./PriceHighlight";
 import { BD_MOBILE_MESSAGE, getPhoneHint, isValidBdPhone, sanitizePhoneInput } from "@/lib/phone";
+import PhoneOtpVerifier, {
+  forgetPhoneOtp,
+  usePhoneOtpRequired,
+} from "@/components/shared/PhoneOtpVerifier";
 import { buildGtmUserData, productToGtmItem, pushEcommerceEvent } from "@/lib/gtm";
 import {
   AboutSection,
@@ -85,6 +89,13 @@ export default function LandingPageView({ landingPage, siteSettings }: LandingPa
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  // Guests confirm the number by SMS code when phone OTP is on
+  const otpOn = usePhoneOtpRequired();
+  // The server is the judge: if it asks for verification, show the code box
+  const [otpForced, setOtpForced] = useState(false);
+  const otpRequired = otpOn || otpForced;
+  const [phoneToken, setPhoneToken] = useState<string | null>(null);
+  const [otpReset, setOtpReset] = useState(0);
   const [address, setAddress] = useState("");
   const [district, setDistrict] = useState("");
   const [notes, setNotes] = useState("");
@@ -270,6 +281,10 @@ export default function LandingPageView({ landingPage, siteSettings }: LandingPa
       toast.error(BD_MOBILE_MESSAGE);
       return;
     }
+    if (otpRequired && !phoneToken) {
+      toast.error("Please verify your phone number with the SMS code first");
+      return;
+    }
     if (isVariable && !currentVariant) {
       toast.error("Please select all product options");
       return;
@@ -298,6 +313,7 @@ export default function LandingPageView({ landingPage, siteSettings }: LandingPa
         checkoutSessionToken: checkoutSessionTokenRef.current,
         notes: notes.trim() || undefined,
         paymentMethod: paymentMethod === "BKASH" ? "BKASH" : "COD",
+        phoneVerificationToken: phoneToken,
       });
 
       if (res.success) {
@@ -332,6 +348,13 @@ export default function LandingPageView({ landingPage, siteSettings }: LandingPa
     } catch (error: any) {
       toast.error(error.message || "Something went wrong. Please try again.");
       setIsSubmitting(false);
+      // Token no longer accepted (expired / OTP just turned on): verify again
+      if (/verify your phone/i.test(error?.message || "")) {
+        forgetPhoneOtp(phone);
+        setPhoneToken(null);
+        setOtpForced(true);
+        setOtpReset((n) => n + 1);
+      }
     }
   };
 
@@ -534,6 +557,9 @@ export default function LandingPageView({ landingPage, siteSettings }: LandingPa
                   <p className="text-xs font-medium text-destructive">
                     {getPhoneHint(phone)}
                   </p>
+                )}
+                {otpRequired && (
+                  <PhoneOtpVerifier key={otpReset} phone={phone} onTokenChange={setPhoneToken} />
                 )}
               </div>
               <Textarea

@@ -5,6 +5,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { User } from "lucide-react";
 import Image from "next/image";
 
+const ROLE_LABEL: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
+  USER: "Customer",
+  WHOLESALER: "Wholesaler",
+};
+
 export const userColumns: ColumnDef<IUser>[] = [
   {
     id: "image",
@@ -38,8 +45,17 @@ export const userColumns: ColumnDef<IUser>[] = [
     accessorKey: "role",
     header: "Role",
     cell: ({ row }) => (
-      <Badge variant="outline" className="capitalize">
-        {row.original.role.toLowerCase().replace("_", " ")}
+      <Badge
+        variant="outline"
+        className={
+          row.original.role === "WHOLESALER"
+            ? "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+            : row.original.role === "USER"
+              ? ""
+              : "border-primary/40 bg-primary/10 text-primary"
+        }
+      >
+        {ROLE_LABEL[row.original.role] ?? row.original.role}
       </Badge>
     ),
   },

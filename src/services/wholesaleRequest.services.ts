@@ -240,3 +240,56 @@ export const getMyWholesaleRequests = async () => {
     return fail(error, "Failed to load your wholesale orders");
   }
 };
+
+// Admin report: completed wholesale sales grouped by wholesaler account
+export interface IWholesalerReportOrder extends IWholesaleTotals {
+  id: string;
+  invoiceNo: number;
+  completedAt: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  businessName: string | null;
+  location: string | null;
+  products: IWholesaleRequestProduct[];
+  deliveryCharge: number;
+  paidAmount: number;
+}
+
+export interface IWholesalerReportRow {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  createdAt: string;
+  businessName: string | null;
+  phone: string | null;
+  openRequests: number;
+  lastOrderAt: string | null;
+  summary: { orders: number; pairs: number; total: number; paid: number; due: number; profit: number };
+  orders: IWholesalerReportOrder[];
+}
+
+export interface IWholesalerReport {
+  wholesalers: IWholesalerReportRow[];
+  totals: {
+    wholesalers: number;
+    active: number;
+    orders: number;
+    pairs: number;
+    total: number;
+    paid: number;
+    due: number;
+    profit: number;
+  };
+}
+
+export const getWholesalerReport = async (params: { startDate?: string; endDate?: string }) => {
+  try {
+    return (
+      await httpClient.get<IWholesalerReport>("/wholesale-requests/report/wholesalers", { params })
+    ).data;
+  } catch (error) {
+    return fail(error, "Failed to load wholesaler report");
+  }
+};

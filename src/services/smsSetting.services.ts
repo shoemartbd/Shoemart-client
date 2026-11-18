@@ -26,3 +26,18 @@ export const updateSmsSettings = async (payload: {
     );
   }
 };
+
+// Remaining SMS balance at BulkSMSBD (taka), or why it couldn't be read
+export const getSmsBalance = async () => {
+  try {
+    const res = await httpClient.get<
+      { ok: true; balance: number } | { ok: false; message: string }
+    >("/sms-settings/balance");
+    return res.data;
+  } catch (error: any) {
+    return {
+      ok: false as const,
+      message: error?.response?.data?.message || "Could not read the SMS balance",
+    };
+  }
+};

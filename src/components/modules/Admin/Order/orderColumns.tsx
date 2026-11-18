@@ -55,6 +55,22 @@ export const orderColumns: ColumnDef<IOrder>[] = [
               Blocked
             </span>
           )}
+          {row.original.phoneVerified === true && (
+            <span
+              title="Phone confirmed by SMS code"
+              className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400"
+            >
+              ✓ OTP
+            </span>
+          )}
+          {row.original.phoneVerified === false && (
+            <span
+              title="The SMS code couldn't be sent, so this number was not confirmed. Call before shipping."
+              className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-400"
+            >
+              Phone not verified
+            </span>
+          )}
         </span>
       </div>
     ),

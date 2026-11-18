@@ -62,6 +62,9 @@ export interface IOrder {
   user?: Pick<IUser, "id" | "name" | "email"> | null; // null for guest / POS orders
   // Set by the admin order list: this phone number is blocked as fraud
   isPhoneBlocked?: boolean;
+  // Phone OTP: true = confirmed by SMS code, false = SMS couldn't be sent so
+  // the order was taken unverified (call first), null = no OTP was asked
+  phoneVerified?: boolean | null;
 }
 
 // Subset of IOrder returned by the public, unauthenticated order-confirmation endpoint

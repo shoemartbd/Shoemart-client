@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import {
+import { ShieldCheck,
   Loader2,
   Save,
   Upload,
@@ -22,6 +23,7 @@ import {
   updateSiteSettings,
 } from "@/services/siteSetting.services";
 import { SiteSettingFormValues } from "@/types/siteSetting.types";
+import { getSmsBalance } from "@/services/smsSetting.services";
 
 const initialFormValues: SiteSettingFormValues = {
   siteName: "",
@@ -39,15 +41,29 @@ const initialFormValues: SiteSettingFormValues = {
   copyrightText: "",
   lowStockThreshold: "5",
   guestCheckoutEnabled: true,
+  phoneOtpEnabled: false,
 };
+
+// Warn when the SMS balance drops under this (taka); each OTP is one SMS
+const LOW_SMS_BALANCE = 100;
 
 export default function SiteSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
   const [formValues, setFormValues] =
     useState<SiteSettingFormValues>(initialFormValues);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  // SMS balance, for the phone OTP switch
+  const [smsBalance, setSmsBalance] = useState<
+    { ok: true; balance: number } | { ok: false; message: string } | null
+  >(null);
+  useEffect(() => {
+    getSmsBalance()
+      .then(setSmsBalance)
+      .catch(() => setSmsBalance({ ok: false, message: "Could not read the SMS balance" }));
+  }, []);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -70,6 +86,7 @@ export default function SiteSettingsPage() {
             copyrightText,
             lowStockThreshold,
             guestCheckoutEnabled,
+            phoneOtpEnabled,
             logo,
           } = res.data;
           setFormValues({
@@ -88,6 +105,7 @@ export default function SiteSettingsPage() {
             copyrightText: copyrightText || "",
             lowStockThreshold: String(lowStockThreshold ?? 5),
             guestCheckoutEnabled: guestCheckoutEnabled ?? true,
+            phoneOtpEnabled: phoneOtpEnabled ?? false,
           });
           setLogoPreview(logo || null);
         }
@@ -131,6 +149,9 @@ export default function SiteSettingsPage() {
       const res = await updateSiteSettings(formData);
       if (res.success) {
         toast.success("Site settings updated successfully");
+        // Storefront pages in this browser pick up the new OTP / checkout setting
+        queryClient.invalidateQueries({ queryKey: ["phone-otp-status"] });
+        queryClient.invalidateQueries({ queryKey: ["site-settings"] });
         setLogoFile(null);
       } else {
         toast.error(res.message || "Failed to update site settings");
@@ -431,6 +452,75 @@ export default function SiteSettingsPage() {
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        {/* Phone OTP for guest orders */}
+        <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="phoneOtpEnabled" className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Verify phone number by SMS code (OTP)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Guests (not logged in) must confirm their phone number with a
+                6-digit SMS code before placing an order, on checkout and
+                landing pages. A confirmed number is remembered on that browser
+                for 30 days. If the SMS can&apos;t be sent (no balance, provider
+                down), the order still goes through and is marked
+                &quot;Phone not verified&quot; in Orders so you can call first.
+              </p>
+            </div>
+            <button
+              id="phoneOtpEnabled"
+              type="button"
+              role="switch"
+              aria-checked={formValues.phoneOtpEnabled}
+              onClick={() =>
+                setFormValues((prev) => ({
+                  ...prev,
+                  phoneOtpEnabled: !prev.phoneOtpEnabled,
+                }))
+              }
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                formValues.phoneOtpEnabled ? "bg-primary" : "bg-muted-foreground/30"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  formValues.phoneOtpEnabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          <div
+            className={`flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-xs ${
+              smsBalance === null
+                ? "bg-muted text-muted-foreground"
+                : smsBalance.ok && smsBalance.balance >= LOW_SMS_BALANCE
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                  : "bg-amber-500/10 text-amber-800 dark:text-amber-300"
+            }`}
+          >
+            {smsBalance === null ? (
+              "Checking SMS balance..."
+            ) : smsBalance.ok ? (
+              <>
+                SMS balance: <b>৳{smsBalance.balance.toLocaleString("en-US")}</b>
+                {smsBalance.balance < LOW_SMS_BALANCE &&
+                  " · Low balance: recharge soon or codes will stop going out"}
+              </>
+            ) : (
+              <>
+                SMS not ready: {smsBalance.message}. Set it up in{" "}
+                <a href="/admin/dashboard/sms-settings" className="font-semibold underline">
+                  SMS Settings
+                </a>{" "}
+                before turning this on.
+              </>
+            )}
           </div>
         </div>
 

@@ -271,6 +271,11 @@ export const adminNavItems: NavSection[] = [
         icon: "HandCoins",
       },
       {
+        title: "Wholesaler Report",
+        href: "/admin/dashboard/wholesaler-report",
+        icon: "UsersRound",
+      },
+      {
         title: "Expense Report",
         href: "/admin/dashboard/expense-report",
         icon: "PieChart",

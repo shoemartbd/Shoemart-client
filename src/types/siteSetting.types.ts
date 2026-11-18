@@ -16,6 +16,7 @@ export interface ISiteSetting {
   copyrightText: string;
   lowStockThreshold: number;
   guestCheckoutEnabled: boolean;
+  phoneOtpEnabled: boolean;
   updatedAt: string;
 }
 
@@ -35,4 +36,5 @@ export interface SiteSettingFormValues {
   copyrightText: string;
   lowStockThreshold: string;
   guestCheckoutEnabled: boolean;
+  phoneOtpEnabled: boolean;
 }
