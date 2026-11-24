@@ -23,7 +23,9 @@ const readStored = (phone: string): Stored | null => {
     const raw = localStorage.getItem(STORAGE_PREFIX + phone);
     if (!raw) return null;
     const value = JSON.parse(raw) as Stored;
-    if (!value?.token || value.exp < Date.now()) {
+    // Only real verifications are remembered; an "SMS couldn't be sent"
+    // pass is for that visit only, so a fixed SMS setup asks again
+    if (!value?.token || !value.verified || value.exp < Date.now()) {
       localStorage.removeItem(STORAGE_PREFIX + phone);
       return null;
     }
@@ -107,7 +109,7 @@ function Verifier({ phone, onTokenChange, className }: Props) {
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
 
   const accept = (value: Stored) => {
-    writeStored(phone, value);
+    if (value.verified) writeStored(phone, value);
     setStored(value);
     setStep("idle");
     setError("");

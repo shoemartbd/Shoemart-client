@@ -57,7 +57,7 @@ export default function SiteSettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   // SMS balance, for the phone OTP switch
   const [smsBalance, setSmsBalance] = useState<
-    { ok: true; balance: number } | { ok: false; message: string } | null
+    { ok: true; balance: number; enabled: boolean } | { ok: false; message: string } | null
   >(null);
   useEffect(() => {
     getSmsBalance()
@@ -499,13 +499,23 @@ export default function SiteSettingsPage() {
             className={`flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-xs ${
               smsBalance === null
                 ? "bg-muted text-muted-foreground"
-                : smsBalance.ok && smsBalance.balance >= LOW_SMS_BALANCE
+                : smsBalance.ok && smsBalance.enabled && smsBalance.balance >= LOW_SMS_BALANCE
                   ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                   : "bg-amber-500/10 text-amber-800 dark:text-amber-300"
             }`}
           >
             {smsBalance === null ? (
               "Checking SMS balance..."
+            ) : smsBalance.ok && !smsBalance.enabled ? (
+              <>
+                <b>SMS Status is Inactive</b>, so no code will be sent and every
+                guest order is taken as &quot;Phone not verified&quot;. Set Status to{" "}
+                <b>Active</b> in{" "}
+                <a href="/admin/dashboard/sms-settings" className="font-semibold underline">
+                  SMS Settings
+                </a>
+                .
+              </>
             ) : smsBalance.ok ? (
               <>
                 SMS balance: <b>৳{smsBalance.balance.toLocaleString("en-US")}</b>

@@ -73,7 +73,7 @@ export default function SmsSettingsPage() {
         <h3 className="text-2xl font-bold">SMS Settings</h3>
         <p className="text-muted-foreground">
           Send customers an SMS when their order is placed and when its
-          status changes.
+          status changes, and the phone verification code (OTP) at checkout.
         </p>
       </div>
 
@@ -94,6 +94,16 @@ export default function SmsSettingsPage() {
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
+            {enabled ? (
+              <p className="text-[0.8rem] text-muted-foreground">
+                Active: order SMS and phone verification codes are sent.
+              </p>
+            ) : (
+              <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-[0.8rem] font-medium text-amber-800 dark:text-amber-300">
+                Inactive: no SMS is sent at all, including phone verification
+                codes (OTP). Choose Active and save to start sending.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

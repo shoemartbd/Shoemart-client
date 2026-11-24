@@ -31,7 +31,7 @@ export const updateSmsSettings = async (payload: {
 export const getSmsBalance = async () => {
   try {
     const res = await httpClient.get<
-      { ok: true; balance: number } | { ok: false; message: string }
+      { ok: true; balance: number; enabled: boolean } | { ok: false; message: string }
     >("/sms-settings/balance");
     return res.data;
   } catch (error: any) {
