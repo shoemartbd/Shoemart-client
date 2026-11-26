@@ -3,7 +3,6 @@
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDown,
@@ -193,7 +192,9 @@ export default function WholesalerReportView() {
       siteSettings,
     );
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const sheet = rows.flatMap((w) =>
       w.orders.map((o) => ({
         Wholesaler: w.name,

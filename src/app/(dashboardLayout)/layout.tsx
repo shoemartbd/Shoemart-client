@@ -2,6 +2,11 @@ import DashboardNavbar from "@/components/modules/Dashboard/DashboardNavbar";
 import DashboardSidebar from "@/components/modules/Dashboard/DashboardSidebar";
 import React from "react";
 
+// Dashboards are private: keep them out of search results
+export const metadata: import("next").Metadata = {
+  robots: { index: false, follow: false },
+};
+
 const RootDashboardLayout = async ({
   children,
 }: {

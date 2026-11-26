@@ -2,8 +2,17 @@ import ProductListing from "@/components/modules/Product/ProductListing";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Explore Products | Shoe Mart",
-  description: "Find the best deals on electronics, fashion, and more at Shoe Mart.",
+  title: "Shop All Shoes Online | Shoe Mart",
+  description:
+    "Browse men's, women's and kids' shoes, sneakers, sandals and more at Shoe Mart. Best prices and cash on delivery across Bangladesh.",
+  alternates: { canonical: "/products" },
+  openGraph: {
+    title: "Shop All Shoes Online | Shoe Mart",
+    description:
+      "Browse men's, women's and kids' shoes, sneakers, sandals and more at Shoe Mart.",
+    url: "/products",
+    type: "website",
+  },
 };
 
 export default function ProductsPage() {

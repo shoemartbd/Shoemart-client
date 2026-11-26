@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Product photos have unique (versioned) Cloudinary URLs, so a resized
+    // copy can be kept for a month instead of being made again every few hours
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
         protocol: "https",

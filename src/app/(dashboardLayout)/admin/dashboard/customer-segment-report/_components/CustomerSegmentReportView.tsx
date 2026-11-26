@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bar,
@@ -106,7 +105,9 @@ export default function CustomerSegmentReportView() {
     if (startDate && endDate) setFilter("range");
   };
 
-  const exportCustomersToExcel = () => {
+  const exportCustomersToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = customers.map((c) => ({
       Phone: c.phone,
       Customer: c.fullName || "-",

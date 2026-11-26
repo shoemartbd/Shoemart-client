@@ -1,5 +1,12 @@
 import { ShieldCheck } from "lucide-react";
 import { CmsPageContent } from "@/components/shared/CmsContentPage";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata(
+  "Privacy Policy | Shoe Mart",
+  "How Shoe Mart collects, uses and protects your personal information.",
+  "/privacy",
+);
 
 export default function PrivacyPage() {
   return (

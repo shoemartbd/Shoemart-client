@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart,
@@ -136,7 +135,9 @@ export default function SalesReportView() {
     if (startDate && endDate) setFilter("range");
   };
 
-  const exportItemsToExcel = () => {
+  const exportItemsToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = items.map((item) => ({
       ProductName: item.product?.name,
       Variant: item.productVariant?.combination || "-",
@@ -157,7 +158,9 @@ export default function SalesReportView() {
     XLSX.writeFile(workbook, `sales-report-${filter}.xlsx`);
   };
 
-  const exportSummaryToExcel = () => {
+  const exportSummaryToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = productSummary.map((p) => ({
       ProductName: p.name,
       TotalSold: p.quantity,

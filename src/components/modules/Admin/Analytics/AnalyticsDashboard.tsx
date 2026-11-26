@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bar,
@@ -177,7 +176,9 @@ export default function AnalyticsDashboard() {
     if (startDate && endDate) setFilter("range");
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = items.map((item) => ({
       Product: item.product?.name,
       Variant: item.productVariant?.combination || "-",

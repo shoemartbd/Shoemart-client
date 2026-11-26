@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,7 +78,9 @@ export default function WholesaleReportView() {
 
   const { summary, items, totals } = data;
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = items.map((r) => ({
       Invoice: wholesaleInvoiceNo(r.invoiceNo),
       Date: format(new Date(r.completedAt), "dd/MM/yyyy"),

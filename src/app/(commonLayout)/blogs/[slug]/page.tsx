@@ -30,12 +30,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const blog = response?.data;
 
     if (!blog) {
-      return { title: "Article Not Found" };
+      return { title: "Article Not Found", robots: { index: false, follow: true } };
     }
 
+    const path = `/blogs/${blog.slug ?? slug}`;
+    const description = blog.excerpt || undefined;
     return {
       title: `${blog.title} | Shoe Mart Journal`,
-      description: blog.excerpt || undefined,
+      description,
+      alternates: { canonical: path },
+      openGraph: {
+        type: "article",
+        title: blog.title,
+        description,
+        url: path,
+        ...(blog.coverImage && { images: [{ url: blog.coverImage, alt: blog.title }] }),
+        ...(blog.createdAt && { publishedTime: blog.createdAt }),
+        ...(blog.updatedAt && { modifiedTime: blog.updatedAt }),
+      },
     };
   } catch {
     return { title: "Article | Shoe Mart Journal" };

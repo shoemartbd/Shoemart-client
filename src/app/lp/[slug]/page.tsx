@@ -18,6 +18,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!landingPage) return { title: "Page Not Found" };
 
     return {
+      // Campaign pages repeat product pages: shared on ads, not indexed
+      robots: { index: false, follow: true },
       title: landingPage.campaignTitle,
       description: landingPage.campaignShortDescription
         ? stripHtml(landingPage.campaignShortDescription)

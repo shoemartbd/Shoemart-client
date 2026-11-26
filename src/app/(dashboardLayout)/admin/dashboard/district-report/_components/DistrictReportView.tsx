@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import ResponsiveChartContainer from "@/components/shared/ResponsiveChartContainer";
@@ -89,7 +88,9 @@ export default function DistrictReportView() {
     if (startDate && endDate) setFilter("range");
   };
 
-  const exportDistrictsToExcel = () => {
+  const exportDistrictsToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = districts.map((d) => ({
       District: d.district,
       Orders: d.totalOrders,
@@ -104,7 +105,9 @@ export default function DistrictReportView() {
     XLSX.writeFile(workbook, `district-report-${filter}.xlsx`);
   };
 
-  const exportOrdersToExcel = () => {
+  const exportOrdersToExcel = async () => {
+    // Loaded only when exporting, so the report page opens faster
+    const XLSX = await import("xlsx");
     const rows = orders.map((o) => ({
       OrderNo: o.orderNumber || "-",
       Customer: o.fullName || "-",

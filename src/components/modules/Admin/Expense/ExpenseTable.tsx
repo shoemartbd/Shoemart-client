@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +14,9 @@ import DeleteExpenseConfirmationDialog from "./DeleteExpenseConfirmationDialog";
 import EditExpenseFormModal from "./EditExpenseFormModal";
 import { expenseColumns } from "./expenseColumns";
 
-const ExpenseTable = () => {
+const ExpenseTable = async () => {
+  // Loaded only when exporting, so the report page opens faster
+  const XLSX = await import("xlsx");
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");

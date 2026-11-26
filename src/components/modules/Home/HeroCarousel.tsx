@@ -30,9 +30,18 @@ function MaybeLink({
 // it just scales (about 156px tall on a phone, 800px on a 1920px screen).
 const HERO_SIZE = "w-full aspect-[12/5]";
 
-export default function HeroCarousel() {
-  const [slides, setSlides] = useState<any[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+// Only main-carousel slides (not side or wholesale-page banners)
+const mainSlides = (data: any[]) =>
+  (data || []).filter((s) => s.isActive !== false && (s.type ?? "SLIDE") === "SLIDE");
+
+// `initialSlides` comes from the server with the page, so the banner (the
+// biggest image on the page) shows straight away instead of after a second
+// request from the browser. Without it the slides are fetched here.
+export default function HeroCarousel({ initialSlides }: { initialSlides?: any[] | null }) {
+  const [slides, setSlides] = useState<any[]>(() =>
+    initialSlides ? mainSlides(initialSlides) : [],
+  );
+  const [isLoaded, setIsLoaded] = useState(Boolean(initialSlides));
   // Track position. Runs 0..slides.length, where slides.length is a copy of
   // the first slide placed after the last one. Reaching the copy snaps back to
   // the real first slide with the transition off, so the loop keeps moving
@@ -43,12 +52,10 @@ export default function HeroCarousel() {
   const [failedVideos, setFailedVideos] = useState<string[]>([]);
 
   useEffect(() => {
+    if (initialSlides) return;
     const fetchSliders = async () => {
       try {
-        const data: any[] = (await getHeroSliders()) || [];
-        const active = data.filter((s) => s.isActive !== false);
-        // Only main-carousel slides (not side or wholesale-page banners)
-        setSlides(active.filter((s) => (s.type ?? "SLIDE") === "SLIDE"));
+        setSlides(mainSlides((await getHeroSliders()) || []));
       } catch (error) {
         console.error("Failed to load hero sliders:", error);
       } finally {
@@ -56,7 +63,7 @@ export default function HeroCarousel() {
       }
     };
     fetchSliders();
-  }, []);
+  }, [initialSlides]);
 
   const current = slides.length ? pos % slides.length : 0;
 
